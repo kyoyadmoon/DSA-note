@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b0d12;
+  --foreground: #e6e7eb;
+  --surface: #11141b;
+  --surface-raised: #161a23;
+  --border: #232835;
+  --muted: #7a8193;
+  --accent: #7dd3fc;
+
+  --bar-idle: #4b5569;
+  --bar-active: #5b6478;
+  --bar-compare: #38bdf8;
+  --bar-swap: #fb923c;
+  --bar-pivot: #a78bfa;
+  --bar-sorted: #34d399;
+  --bar-text: #0b0d12;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+
+  --color-bar-idle: var(--bar-idle);
+  --color-bar-active: var(--bar-active);
+  --color-bar-compare: var(--bar-compare);
+  --color-bar-swap: var(--bar-swap);
+  --color-bar-pivot: var(--bar-pivot);
+  --color-bar-sorted: var(--bar-sorted);
+
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-fraunces);
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+/* rehype-pretty-code line highlight */
+[data-highlighted-line] {
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  border-left: 2px solid var(--accent);
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+}
+
+code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.5rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: var(--muted);
 }
