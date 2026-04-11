@@ -10,6 +10,11 @@ import {
   bstInsertSource,
   bstInsertSteps,
 } from "@/lib/algorithms/tree/bstInsert";
+import {
+  preorderMeta,
+  preorderSource,
+  preorderSteps,
+} from "@/lib/algorithms/tree/preorder";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -36,6 +41,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: bstInsertMeta,
     source: bstInsertSource,
     steps: bstInsertSteps,
+  },
+  "tree-preorder": {
+    meta: preorderMeta,
+    source: preorderSource,
+    steps: preorderSteps,
   },
 };
 

@@ -1,0 +1,96 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 02
+</div>
+
+# 前序走訪 Preorder Traversal
+
+前序走訪是最直觀的深度優先走訪：**先處理根節點，再處理左子樹，最後處理右子樹**。它展開的順序跟你用筆在紙上畫樹、從根節點往下寫字的直覺一致，也是複製 / 序列化一棵樹時的標準選擇。
+
+<TreeAlgorithmRunner slug="tree-preorder" initial={[50, 30, 70, 20, 40, 60, 80]} />
+
+## 為什麼會動
+
+前序走訪的定義本身就是遞迴的：
+
+> 一棵樹的前序 = **根** + **左子樹的前序** + **右子樹的前序**
+
+這三件事的順序就是全部的魔法。函式體只有三行（忽略 null 檢查）：先 `push(root)`、再 `preorder(left)`、最後 `preorder(right)`。呼叫堆疊自動幫你記住「我剛剛處理到哪裡」——每進入一層遞迴就多一層 stack frame，處理完就 pop 回上一層。
+
+動畫裡你會看到：
+
+- **藍色的節點**是當前正在訪問的節點——剛被輸出到結果序列裡
+- **紫色的節點**是正在遞迴呼叫堆疊上的祖先節點，它們正等著自己的子樹全部處理完
+- **灰色背景的節點**代表已輸出的子樹，可以完全忘記它們
+- **高亮的邊**顯示當前的遞迴呼叫從哪個父節點下行
+
+整個走訪過程就是遞迴深入 → 輸出 → 遞迴深入 → 輸出 → 回溯 → 遞迴深入到另一側的循環。
+
+## 迭代版本：用一個 stack 取代呼叫堆疊
+
+遞迴版本依賴 call stack；我們也可以手動維護一個 stack，效果完全等價：
+
+```ts
+function preorderIterative(root: TreeNode | null): number[] {
+  if (!root) return [];
+  const out: number[] = [];
+  const stack: TreeNode[] = [root];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    out.push(node.value);
+    // 注意：右子先 push，左子後 push，這樣 pop 出來才是先左後右
+    if (node.right) stack.push(node.right);
+    if (node.left) stack.push(node.left);
+  }
+  return out;
+}
+```
+
+關鍵技巧是「右子先 push」——因為 stack 是 LIFO，後 push 的會先被 pop 出來，所以左子要最後才 push 才能先被處理。
+
+還有一個叫 **Morris Traversal** 的進階技巧可以把空間複雜度壓到 `O(1)`，代價是暫時改動節點的指標來建立 threaded tree；面試常考，但第一次學前序時不用急著掌握。
+
+## 複雜度
+
+### 時間：T(n) = 1 + T(|L|) + T(|R|) → O(n)
+
+每個節點恰好被訪問一次，在訪問的當下做 `O(1)` 的工作（push 到輸出陣列）。展開遞迴式：
+
+```
+T(n) = 1 + T(|L|) + T(|R|)
+     = 1 + (1 + T(|LL|) + T(|LR|)) + (1 + T(|RL|) + T(|RR|))
+     = 1 + 一棵樹每個節點貢獻 1
+     = n
+```
+
+不管樹長什麼形狀（平衡、歪斜、空洞），只要有 n 個節點，就有 n 次 push，時間就是 `O(n)`。
+
+### 空間：O(h)
+
+空間來自遞迴呼叫堆疊的深度，等於樹的高度 `h`：
+
+- **平衡樹**：`h ≈ log₂(n)`，空間 `O(log n)`
+- **歪斜樹**（退化成一條鏈）：`h = n`，空間 `O(n)`
+
+迭代版本用顯式 stack，最壞情況空間上限一樣是 `O(h)`。Morris traversal 是例外的 `O(1)` 空間解法。
+
+## 跟其他 traversal 比較
+
+| 順序 | 訪問次序 | 典型應用 |
+|---|---|---|
+| **前序** (Preorder) | 根 → 左 → 右 | 複製樹、序列化（配 null 標記）、expression tree 的前綴式輸出 |
+| **中序** (Inorder) | 左 → 根 → 右 | BST 取得排序結果、expression tree 的中綴式 |
+| **後序** (Postorder) | 左 → 右 → 根 | 刪除整棵樹、計算子樹屬性（高度、大小）、expression tree 的後綴式 |
+| **層序** (Level-order) | 一層一層由上而下 | 最短距離、level sum、zigzag、樹的最大寬度 |
+
+三種 DFS 走訪的差別**只在 `push(root.value)` 這一行寫在哪裡**——寫在遞迴左子之前是前序、寫在中間是中序、寫在後面是後序。
+
+## 常見題型
+
+前序走訪是以下題目的前置知識：
+
+- [LeetCode 144 · Binary Tree Preorder Traversal](https://leetcode.com/problems/binary-tree-preorder-traversal/)
+- [LeetCode 589 · N-ary Tree Preorder Traversal](https://leetcode.com/problems/n-ary-tree-preorder-traversal/)
+- [LeetCode 297 · Serialize and Deserialize Binary Tree](https://leetcode.com/problems/serialize-and-deserialize-binary-tree/)（前序 + `null` 標記是最簡單的序列化方案）
+- [LeetCode 105 · Construct Binary Tree from Preorder and Inorder Traversal](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
