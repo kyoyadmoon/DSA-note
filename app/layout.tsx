@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Fraunces } from "next/font/google";
-import Link from "next/link";
+import { AppShell } from "@/components/layout/AppShell";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,79 +31,8 @@ export default function RootLayout({
       className={`${inter.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <div className="min-h-screen grid md:grid-cols-[15rem_minmax(0,1fr)_15rem]">
-          <aside className="border-r border-border bg-surface/60 px-6 py-8 hidden md:flex md:flex-col gap-8">
-            <Link href="/" className="block">
-              <div className="font-serif text-2xl leading-none tracking-tight">
-                DSA<span className="text-accent">.</span>
-              </div>
-              <div className="text-xs text-muted mt-1">
-                interactive notes
-              </div>
-            </Link>
-
-            <nav className="text-sm space-y-6">
-              <div>
-                <div className="text-[11px] uppercase tracking-widest text-muted mb-2">
-                  Sorting
-                </div>
-                <ul className="space-y-1.5">
-                  <SidebarLink href="/sorting/bubble-sort">
-                    Bubble sort
-                  </SidebarLink>
-                  <SidebarLink href="/sorting/selection-sort">
-                    Selection sort
-                  </SidebarLink>
-                  <SidebarLink href="/sorting/insertion-sort">
-                    Insertion sort
-                  </SidebarLink>
-                  <SidebarLink href="/sorting/quick-sort">
-                    Quick sort
-                  </SidebarLink>
-                  <SidebarLink href="/sorting/merge-sort">
-                    Merge sort
-                  </SidebarLink>
-                  <SidebarLink href="/sorting/heap-sort">
-                    Heap sort
-                  </SidebarLink>
-                </ul>
-              </div>
-              <div>
-                <div className="text-[11px] uppercase tracking-widest text-muted mb-2">
-                  Tree
-                </div>
-                <ul className="space-y-1.5">
-                  <SidebarLink href="/tree/bst-insert">
-                    BST Insertion
-                  </SidebarLink>
-                </ul>
-              </div>
-            </nav>
-          </aside>
-
-          <main className="min-w-0">{children}</main>
-          <div className="hidden md:block" aria-hidden="true" />
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
-  );
-}
-
-function SidebarLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className="block rounded-md px-2 py-1 text-foreground/80 hover:text-foreground hover:bg-surface-raised transition-colors"
-      >
-        {children}
-      </Link>
-    </li>
   );
 }
