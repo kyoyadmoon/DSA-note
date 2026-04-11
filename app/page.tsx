@@ -27,6 +27,12 @@ export default function Home() {
             title="排序演算法"
             description="從 bubble sort 到 heap sort，六個經典排序各自有專屬的逐步動畫。"
           />
+          <TopicCard
+            href="/tree/bst-insert"
+            eyebrow="Tree · BST"
+            title="樹狀結構"
+            description="從 BST 插入開始，用動畫看懂樹的遞迴結構與搜尋路徑。"
+          />
         </div>
       </div>
 

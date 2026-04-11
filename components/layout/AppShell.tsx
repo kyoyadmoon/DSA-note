@@ -18,6 +18,7 @@ const SORTING_LINKS = [
   { href: "/sorting/quick-sort", label: "Quick sort" },
   { href: "/sorting/merge-sort", label: "Merge sort" },
   { href: "/sorting/heap-sort", label: "Heap sort" },
+  { href: "/tree/bst-insert", label: "BST Insertion" },
 ] as const;
 
 export function AppShell({ children }: Props) {
