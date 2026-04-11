@@ -1,0 +1,78 @@
+import { AlgorithmRunner } from "@/components/visualizer/AlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Sorting · 01
+</div>
+
+# Bubble Sort
+
+Bubble sort 是幾乎每個人學演算法看到的第一個排序方法。它的想法非常樸素：**從左到右掃描，遇到相鄰兩個元素左邊比右邊大就交換**。
+走完一輪，這一輪的最大值就會像泡泡一樣冒到最右邊；走完 n 輪，整個陣列就排好了。
+
+它在實務上幾乎不會被用到（O(n²) 太慢），但是它是理解「相鄰交換」這個原語最直接的例子，
+也是之後看 insertion sort、cocktail sort 等變形時的共同起點。
+
+<AlgorithmRunner slug="bubble-sort" initial={[5, 2, 8, 1, 9, 3, 7, 4]} />
+
+## 為什麼會動
+
+關鍵在於**每一輪掃完之後，最後 i 格都是已經排序好的最大值**——這是 bubble sort 的迴圈不變量。
+
+想像一下，當你第一次把 `j` 從左掃到右，每次遇到 `a[j] > a[j+1]` 就交換。掃到最右邊時，最大的那個值
+會一路被往右推，直到它真的變成陣列的最後一個。這就是「冒泡」名字的由來。
+
+接著第二輪只要掃到倒數第二個就夠了（最後一格已經就位），第三輪掃到倒數第三個，依此類推。
+
+## 優化：提早結束
+
+標準 bubble sort 會硬跑滿 n−1 輪，但其實可以加一個旗標：**如果某一輪完全沒發生交換，代表陣列已經排好了，直接 break**。
+這個小改動讓 bubble sort 在輸入已經（接近）排序時達到 O(n) 的最好情況。
+
+你可以點上面動畫的 **Random** 按鈕幾次，觀察看看不同輸入下會跑幾輪。
+
+## 複雜度
+
+### 時間複雜度怎麼算出來的
+
+Bubble sort 有**兩層迴圈**：
+
+- **外層** `i`：總共跑 n − 1 輪（每一輪把當輪最大值推到右邊）
+- **內層** `j`：每一輪大約掃過 n 個元素比一次鄰居
+
+兩層相乘——大約 `n × n = n²` 次比較，所以時間複雜度是 **O(n²)**。這就是**平均情況**和**最壞情況**（陣列完全反向）的結果。
+
+**最好情況 O(n)** 只發生在輸入已經排好的時候。第一輪掃 n 次全部都不需要交換，`swapped` 旗標仍然是 `false`，直接 `break`。只跑了一層迴圈，所以是 **O(n)**。
+
+| 情境 | 比較次數 | 交換次數 | Big-O |
+|---|---|---|---|
+| 已排序（有提早結束） | n − 1 | 0 | O(n) |
+| 隨機 | ≈ n²/4 | ≈ n²/4 | O(n²) |
+| 完全反向 | n(n−1)/2 | n(n−1)/2 | O(n²) |
+
+### 空間複雜度
+
+整個演算法只用了幾個區域變數：`i`、`j`、`swapped`，以及交換時的暫存值。**不需要額外陣列**，所以空間是 **O(1)**（in-place）。注意我們在函式開頭做了 `const arr = [...input]` 來避免改到呼叫端的資料——這個複製是一次性的 O(n)，通常不算進 bubble sort 本身的空間複雜度，而是呼叫者的選擇。
+
+### 為什麼穩定
+
+「穩定」的定義是：**如果兩個元素相等，排序後它們的原本相對順序被保留**。
+
+Bubble sort 的比較條件是 `a[j] > a[j+1]`（嚴格大於），相等時**不會**交換。這意味著兩個相同值的元素永遠不會互相跨越，所以原本的先後順序會保留——因此 bubble sort 是穩定的。
+
+（小心：如果寫成 `>=`，就會變成不穩定！這是一個常見的 bug。）
+
+## 跟其他排序比較
+
+| 排序 | 比較次數（平均） | 交換次數 | 特色 |
+|---|---|---|---|
+| Bubble | O(n²) | 多 | 最樸素、最慢 |
+| Selection | O(n²) | 少 | 交換次數最少 |
+| Insertion | O(n²) | 中 | 對近乎排序的輸入接近 O(n) |
+
+## 常見題型
+
+Bubble sort 本身很少被直接考，但「相鄰交換」的想法會出現在：
+
+- [LeetCode 1536 · Minimum Swaps to Arrange a Binary Grid](https://leetcode.com/problems/minimum-swaps-to-arrange-a-binary-grid/)
+- [LeetCode 2340 · Minimum Adjacent Swaps to Make a Valid Array](https://leetcode.com/problems/minimum-adjacent-swaps-to-make-a-valid-array/)
+- 計算一個排列要變成另一個排列所需的相鄰交換次數 ≡ 逆序數（inversion count）
