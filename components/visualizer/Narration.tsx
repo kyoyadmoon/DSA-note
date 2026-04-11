@@ -1,10 +1,14 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import type { ArrayStep } from "@/lib/types/step";
+type NarrationStep = {
+  phase: string;
+  title: string;
+  detail: string;
+};
 
 type Props = {
-  step: ArrayStep;
+  step: NarrationStep;
   stepIndex: number;
 };
 

@@ -1,0 +1,71 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 01
+</div>
+
+# BST Insertion
+
+Binary Search Tree（BST）是最基礎的樹狀資料結構。它有一條簡單但強大的規則：**對任何節點，左子樹的所有值都比它小，右子樹的所有值都大於等於它**。
+
+插入操作就是體現這條規則的最直接方式：從根節點開始，一路比較，遇到比較小就往左、比較大就往右，走到空位就放下——就像在一棵長出來的樹上找到新葉子該長的位置。
+
+<TreeAlgorithmRunner slug="bst-insert" initial={[50, 30, 70, 20, 40, 60, 80]} />
+
+## 為什麼會動
+
+關鍵在於 BST 的定義本身就是遞迴的：
+
+> 一棵 BST，就是根節點 + 左子 BST（都比根小）+ 右子 BST（都比根大）
+
+所以 `insert` 也是遞迴的：如果當前位置是空的，就放在這裡；不然就根據大小往左或往右遞迴。每次遞迴深入一層，問題規模少一半（理想情況下），直到找到空位為止。
+
+這個過程其實就是一個**二元搜尋的具現化**——你在走一條從根到葉子的路徑，每一步都把搜尋範圍砍半。
+
+## 插入順序 = 樹的形狀
+
+BST 的形狀**完全取決於插入順序**。試試上面的 **Random** 按鈕，你會發現：
+
+- 如果先插入中間值再插入兩側的值，樹會比較平衡（矮胖）
+- 如果按照排序過的順序插入（例如 10, 20, 30, 40...），樹會退化成一條鏈（又高又瘦）——這就是 BST 最壞的情況
+
+這也是為什麼後來要發明 AVL tree、Red-Black tree 等自平衡 BST：**不管插入順序如何，都保證樹的高度維持在 O(log n)**。
+
+## 複雜度
+
+### 時間複雜度怎麼算出來的
+
+插入一個節點需要**從根走到某個葉子**，走過的步數就是路徑長度，也就是**樹的高度 h**。
+
+- **最好 / 平均情況 O(log n)**：如果樹是平衡的，每層有大約 2^k 個節點，n 個節點的樹高度 ≈ log₂(n)。
+- **最壞情況 O(n)**：如果按照排序順序插入，樹退化成一條鏈，高度 = n。
+
+| 情境 | 樹高 | 插入時間 |
+|---|---|---|
+| 隨機順序插入 | ≈ 1.39 log₂(n) | O(log n) |
+| 排序順序插入 | n | O(n) |
+| 完美平衡 | ⌊log₂(n)⌋ | O(log n) |
+
+### 空間複雜度
+
+遞迴版本的空間複雜度是 **O(h)**——call stack 的深度等於樹高。迭代版本可以做到 O(1)，但程式碼較不直觀。
+
+## 跟其他資料結構比較
+
+| 操作 | 排序陣列 | BST (平衡) | BST (最壞) | Hash Table |
+|---|---|---|---|---|
+| 搜尋 | O(log n) | O(log n) | O(n) | O(1) |
+| 插入 | O(n) | O(log n) | O(n) | O(1) |
+| 找最大/最小 | O(1) | O(log n) | O(n) | O(n) |
+| 有序走訪 | O(n) | O(n) | O(n) | O(n log n) |
+
+BST 的優勢在於它同時支援**快速搜尋**和**有序走訪**——這是 hash table 做不到的。
+
+## 常見題型
+
+BST 插入是以下題目的前置知識：
+
+- [LeetCode 701 · Insert into a Binary Search Tree](https://leetcode.com/problems/insert-into-a-binary-search-tree/)
+- [LeetCode 98 · Validate Binary Search Tree](https://leetcode.com/problems/validate-binary-search-tree/)
+- [LeetCode 108 · Convert Sorted Array to Binary Search Tree](https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/)
+- [LeetCode 700 · Search in a Binary Search Tree](https://leetcode.com/problems/search-in-a-binary-search-tree/)
