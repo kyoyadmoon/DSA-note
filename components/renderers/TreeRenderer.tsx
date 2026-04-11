@@ -18,13 +18,17 @@ const NODE_RADIUS = TREE_NODE_RADIUS;
 const INSERT_EDGE_GROW_DURATION = 0.34;
 const INSERT_NODE_REVEAL_DELAY = 0.08;
 const NODE_EXIT_DURATION = 0.14;
-const LEGEND_ITEMS = [
+const LEGEND_ITEMS: readonly {
+  label: string;
+  color: string;
+  isLine?: boolean;
+}[] = [
   { label: "未操作", color: "var(--color-bar-idle)" },
   { label: "正在比較", color: "var(--color-bar-compare)" },
   { label: "目前路徑", color: "var(--color-bar-pivot)" },
   { label: "新插入節點", color: "var(--color-bar-sorted)" },
   { label: "當前邊", color: "var(--color-accent)", isLine: true },
-] as const;
+];
 
 // ── node colour mapping ───────────────────────────────────────
 
@@ -166,29 +170,33 @@ export function TreeRenderer({ step, direction = 0 }: Props) {
                       : "var(--color-border)",
                     strokeWidth: isActive ? 3 : 2,
                   }}
-                  exit={(stepDirection) =>
-                    stepDirection < 0
-                      ? {
-                          pathLength: 0,
-                          opacity: 0,
-                          transition: {
-                            pathLength: {
-                              duration: INSERT_EDGE_GROW_DURATION,
-                              ease: "easeInOut",
-                              delay: NODE_EXIT_DURATION,
+                  variants={{
+                    exit: (dir: number) =>
+                      dir < 0
+                        ? {
+                            pathLength: 0,
+                            opacity: 0,
+                            transition: {
+                              pathLength: {
+                                duration: INSERT_EDGE_GROW_DURATION,
+                                ease: "easeInOut",
+                                delay: NODE_EXIT_DURATION,
+                              },
+                              opacity: {
+                                duration: 0.12,
+                                delay:
+                                  NODE_EXIT_DURATION +
+                                  INSERT_EDGE_GROW_DURATION -
+                                  0.02,
+                              },
                             },
-                            opacity: {
-                              duration: 0.12,
-                              delay:
-                                NODE_EXIT_DURATION + INSERT_EDGE_GROW_DURATION - 0.02,
-                            },
+                          }
+                        : {
+                            opacity: 0,
+                            transition: { duration: 0.16 },
                           },
-                        }
-                      : {
-                          opacity: 0,
-                          transition: { duration: 0.16 },
-                        }
-                  }
+                  }}
+                  exit="exit"
                   transition={{
                     pathLength: { duration: INSERT_EDGE_GROW_DURATION, ease: "easeOut" },
                     opacity: { duration: 0.25 },
@@ -228,16 +236,19 @@ export function TreeRenderer({ step, direction = 0 }: Props) {
                   x: n.x,
                   y: n.y,
                 }}
-                exit={(stepDirection) => ({
-                  opacity: 0,
-                  scale: stepDirection < 0 ? 0.92 : 0.86,
-                  x: n.x,
-                  y: n.y,
-                  transition: {
-                    opacity: { duration: NODE_EXIT_DURATION },
-                    scale: { duration: NODE_EXIT_DURATION },
-                  },
-                })}
+                variants={{
+                  exit: (dir: number) => ({
+                    opacity: 0,
+                    scale: dir < 0 ? 0.92 : 0.86,
+                    x: n.x,
+                    y: n.y,
+                    transition: {
+                      opacity: { duration: NODE_EXIT_DURATION },
+                      scale: { duration: NODE_EXIT_DURATION },
+                    },
+                  }),
+                }}
+                exit="exit"
                 transition={{
                   x: { type: "spring", stiffness: 340, damping: 28 },
                   y: { type: "spring", stiffness: 340, damping: 28 },
