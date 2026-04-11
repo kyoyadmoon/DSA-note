@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTreeAlgorithm } from "@/lib/algorithms/registry";
-import type { TreeAlgorithmMeta } from "@/lib/types/tree";
+import type { TreeAlgorithmMeta, TreeNodeState } from "@/lib/types/tree";
 import { TreeRenderer } from "@/components/renderers/TreeRenderer";
 import { CodePanel } from "./CodePanel";
 import { Narration } from "./Narration";
@@ -99,6 +99,14 @@ export function TreeAlgorithmRunnerClient({
     return entry.steps(input);
   }, [slug, input]);
 
+  const usedStates = useMemo<ReadonlySet<TreeNodeState>>(() => {
+    const set = new Set<TreeNodeState>();
+    for (const s of steps) {
+      for (const state of Object.values(s.nodeStates)) set.add(state);
+    }
+    return set;
+  }, [steps]);
+
   const step = steps[Math.min(currentStep, steps.length - 1)];
 
   const handleStepChange = useCallback(
@@ -137,7 +145,11 @@ export function TreeAlgorithmRunnerClient({
 
   const animationPanel = (
     <div className="rounded-xl border border-border bg-surface relative overflow-hidden h-full">
-      <TreeRenderer step={step} direction={stepDirection} />
+      <TreeRenderer
+        step={step}
+        direction={stepDirection}
+        usedStates={usedStates}
+      />
     </div>
   );
 

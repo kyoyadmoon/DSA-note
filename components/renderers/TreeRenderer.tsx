@@ -12,23 +12,46 @@ import { useEffect, useMemo, useRef, useState } from "react";
 type Props = {
   step: TreeStep;
   direction?: 1 | -1 | 0;
+  /** States that actually appear in this algorithm's step sequence. When
+   * provided, the legend hides state chips the algorithm never produces
+   * (e.g. a traversal shouldn't show "新插入節點"). */
+  usedStates?: ReadonlySet<TreeNodeState>;
 };
 
 const NODE_RADIUS = TREE_NODE_RADIUS;
 const INSERT_EDGE_GROW_DURATION = 0.34;
 const INSERT_NODE_REVEAL_DELAY = 0.08;
 const NODE_EXIT_DURATION = 0.14;
-const LEGEND_ITEMS: readonly {
+
+type LegendItem = {
+  state?: TreeNodeState;
   label: string;
   color: string;
   isLine?: boolean;
-}[] = [
-  { label: "未操作", color: "var(--color-bar-idle)" },
-  { label: "正在比較", color: "var(--color-bar-compare)" },
-  { label: "目前路徑", color: "var(--color-bar-pivot)" },
-  { label: "新插入節點", color: "var(--color-bar-sorted)" },
+};
+
+const LEGEND_ITEMS: readonly LegendItem[] = [
+  { state: "idle", label: "未操作", color: "var(--color-bar-idle)" },
+  { state: "comparing", label: "正在比較", color: "var(--color-bar-compare)" },
+  { state: "path", label: "目前路徑", color: "var(--color-bar-pivot)" },
+  { state: "visited", label: "已走訪", color: "var(--color-bar-visited)" },
+  { state: "found", label: "已找到", color: "var(--color-bar-swap)" },
+  { state: "inserted", label: "新插入節點", color: "var(--color-bar-sorted)" },
   { label: "當前邊", color: "var(--color-accent)", isLine: true },
 ];
+
+function filterLegendItems(
+  usedStates: ReadonlySet<TreeNodeState> | undefined,
+): readonly LegendItem[] {
+  if (!usedStates) return LEGEND_ITEMS;
+  return LEGEND_ITEMS.filter((item) => {
+    if (item.isLine) return true;
+    if (!item.state) return true;
+    // Always keep idle even if no step marks nodes idle — it's the base state.
+    if (item.state === "idle") return true;
+    return usedStates.has(item.state);
+  });
+}
 
 // ── node colour mapping ───────────────────────────────────────
 
@@ -39,7 +62,7 @@ function getNodeColor(state: TreeNodeState): string {
     case "inserted":
       return "var(--color-bar-sorted)";
     case "visited":
-      return "var(--color-bar-active)";
+      return "var(--color-bar-visited)";
     case "found":
       return "var(--color-bar-swap)";
     case "path":
@@ -56,9 +79,13 @@ function getNodeScale(state: TreeNodeState): number {
 
 // ── component ──────────────────────────────────────────────────
 
-export function TreeRenderer({ step, direction = 0 }: Props) {
+export function TreeRenderer({ step, direction = 0, usedStates }: Props) {
   const { root, nodeStates, activeEdge, operationValue } = step;
   const layout = useMemo(() => calculateTreeLayout(root), [root]);
+  const visibleLegend = useMemo(
+    () => filterLegendItems(usedStates),
+    [usedStates],
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -112,7 +139,7 @@ export function TreeRenderer({ step, direction = 0 }: Props) {
         title="Legend"
         ariaLabel="Animation color legend"
         className="absolute bottom-3 left-3 z-20"
-        items={LEGEND_ITEMS.map((item) => ({
+        items={visibleLegend.map((item) => ({
           label: item.label,
           color: item.isLine ? undefined : item.color,
           marker: item.isLine ? (
