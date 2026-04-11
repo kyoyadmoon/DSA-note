@@ -44,3 +44,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude code — keep repo settings/hooks, ignore generated local output
+.claude/suggested-rules.md
+.claude/scheduled_tasks.lock
