@@ -68,6 +68,16 @@ export default function RootLayout({
                   </SidebarLink>
                 </ul>
               </div>
+              <div>
+                <div className="text-[11px] uppercase tracking-widest text-muted mb-2">
+                  Tree
+                </div>
+                <ul className="space-y-1.5">
+                  <SidebarLink href="/tree/bst-insert">
+                    BST Insertion
+                  </SidebarLink>
+                </ul>
+              </div>
             </nav>
           </aside>
 
