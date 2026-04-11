@@ -9,6 +9,11 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+/.pnpm-store
+
+# other package managers — this project uses pnpm
+package-lock.json
+yarn.lock
 
 # testing
 /coverage
