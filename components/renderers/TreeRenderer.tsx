@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { Legend } from "@/components/visualizer/Legend";
 import type { TreeStep, TreeNodeState } from "@/lib/types/tree";
 import {
   calculateTreeLayout,
@@ -96,44 +97,32 @@ export function TreeRenderer({ step, direction = 0 }: Props) {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="absolute top-3 left-1/2 -translate-x-1/2 z-20
-            font-mono text-xs px-3 py-1 rounded-full
+            font-mono text-sm px-3 py-1 rounded-full
             bg-surface-raised border border-border shadow-md text-accent"
         >
           insert({operationValue})
         </motion.div>
       )}
 
-      <div
-        className="absolute bottom-3 left-3 z-20 rounded-lg border border-border/80 bg-surface/92 px-3 py-2 shadow-md backdrop-blur-sm"
-        aria-label="Animation color legend"
-      >
-        <div className="mb-1 font-mono text-[15px] uppercase tracking-[0.16em] text-muted">
-          Color legend
-        </div>
-        <div className="flex flex-wrap gap-x-5 gap-y-3 text-[16.5px] text-muted">
-          {LEGEND_ITEMS.map((item) => (
-            <div key={item.label} className="flex items-center gap-2">
-              {item.isLine ? (
-                <span
-                  className="block w-4 rounded-full"
-                  style={{
-                    height: 2,
-                    backgroundColor: item.color,
-                  }}
-                  aria-hidden="true"
-                />
-              ) : (
-                <span
-                  className="block size-2.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                  aria-hidden="true"
-                />
-              )}
-              <span>{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Legend
+        title="Legend"
+        ariaLabel="Animation color legend"
+        className="absolute bottom-3 left-3 z-20"
+        items={LEGEND_ITEMS.map((item) => ({
+          label: item.label,
+          color: item.isLine ? undefined : item.color,
+          marker: item.isLine ? (
+            <span
+              className="block w-4 rounded-full"
+              style={{
+                height: 2,
+                backgroundColor: item.color,
+              }}
+              aria-hidden="true"
+            />
+          ) : undefined,
+        }))}
+      />
 
       <svg
         width={layout.width * scale}
