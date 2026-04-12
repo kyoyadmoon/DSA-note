@@ -71,6 +71,11 @@ import {
   maxDepthSteps,
 } from "@/lib/algorithms/tree/maxDepth";
 import {
+  diameterMeta,
+  diameterSource,
+  diameterSteps,
+} from "@/lib/algorithms/tree/diameter";
+import {
   quickFindMeta,
   quickFindSource,
   quickFindSteps,
@@ -171,6 +176,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: maxDepthMeta,
     source: maxDepthSource,
     steps: maxDepthSteps,
+  },
+  "tree-diameter": {
+    meta: diameterMeta,
+    source: diameterSource,
+    steps: diameterSteps,
   },
 };
 
