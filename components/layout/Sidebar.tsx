@@ -9,6 +9,7 @@ const TREE_LINKS = [
   { href: "/tree/tree-level-order", label: "層序走訪" },
   { href: "/tree/tree-postorder", label: "後序走訪" },
   { href: "/tree/tree-inorder", label: "中序走訪" },
+  { href: "/tree/tree-max-depth", label: "最大深度" },
 ] as const;
 
 const SORTING_LINKS = [
