@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const TREE_LINKS = [
   { href: "/tree/bst-insert", label: "BST Insertion" },
+  { href: "/tree/tree-lca", label: "最近公共祖先" },
   { href: "/tree/tree-preorder", label: "前序走訪" },
   { href: "/tree/tree-level-order", label: "層序走訪" },
   { href: "/tree/tree-postorder", label: "後序走訪" },

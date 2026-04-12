@@ -1,0 +1,75 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 03
+</div>
+
+# 最近公共祖先 Lowest Common Ancestor
+
+最近公共祖先（LCA）就是兩個目標節點的**最深共同祖先**；最經典的解法是**後序遍歷 + 分治**，讓每個子樹先回報「我有沒有找到目標」。
+
+<TreeAlgorithmRunner slug="tree-lca" initial={[50, 30, 70, 20, 40, 60, 80]} />
+
+## 為什麼會動
+
+LCA 的關鍵不是先看根，而是先讓**左右子樹各自把資訊往上帶**。這就是後序遍歷（left → right → node）的價值：當你站回某個節點時，左右兩邊的答案都已經算好了。
+
+每個節點只需要處理三種情況：
+
+- 如果自己就是 `p` 或 `q`，直接把自己回傳上去
+- 如果左邊和右邊都各自找到一個目標，當前節點就是最近公共祖先
+- 如果只有一邊找到，就把那個結果原封不動往上傳
+
+不變量是：**`lca(node, p, q)` 的回傳值代表「在這棵以 `node` 為根的子樹裡，最有用的答案是什麼」**。可能是 `null`、可能是 `p` / `q` 本人，也可能是已經在更深層找到的 LCA。
+
+這個版本故意**不利用 BST 性質**。即使輸入樹完全不是二元搜尋樹，只要是一般 binary tree，這個後序遞迴仍然成立。也因為它不依賴排序關係，才是 LeetCode 236 的標準解。
+
+## 優化 / 變形
+
+- **BST LCA（LeetCode 235）**：如果已知是 BST，只要比較 `p`、`q` 與當前節點大小，就能一路往左或往右走，時間降成 `O(h)`。
+- **Parent pointer 版本**：如果每個節點有 parent 指標，可以先求深度、再把較深的節點往上拉平，最後同步上跳。
+- **Euler Tour + Sparse Table**：適合靜態樹 + 大量查詢。先把樹展平成 Euler tour，再把 LCA 轉成 RMQ。
+- **Tarjan's Offline Algorithm**：適合一次給很多 query、允許 offline 處理的情境，用 Union-Find 批次回答。
+
+## 複雜度推導
+
+### 時間：O(n)
+
+每個節點最多只會被遞迴函式進入一次，而且在該次呼叫裡只做固定工作：
+
+```text
+T(node) = T(left) + T(right) + O(1)
+```
+
+把整棵樹展開之後，每個節點都只貢獻一次 `O(1)`，所以總時間就是：
+
+```text
+T(n) = O(1) + O(1) + ... + O(1)  (共 n 個節點)
+     = O(n)
+```
+
+### 空間：O(h)
+
+額外空間主要來自遞迴 call stack，深度等於樹高 `h`：
+
+- 平衡樹：`h = O(log n)`
+- 歪斜樹：`h = O(n)`
+
+如果改成 BST 特化版本，因為只走單一路徑，時間與空間都會收斂到 `O(h)`。
+
+## 跟其他 LCA 解法比較
+
+| 方法 | 適用條件 | 單次查詢時間 | 額外空間 | 說明 |
+|---|---|---|---|---|
+| **LCA（通用 binary tree）** | 一般二元樹 | `O(n)` | `O(h)` | 最直觀，後序遍歷一次解決 |
+| **LCA（BST）** | 樹滿足 BST 性質 | `O(h)` | `O(1)` 或 `O(h)` | 利用大小關係剪枝，不必掃全樹 |
+| **LCA（parent ptr）** | 節點能往上走 | `O(h)` | `O(1)` | 先對齊深度，再同步往上 |
+| **LCA（多次查詢）** | 靜態樹、query 很多 | 預處理後可到 `O(1)` 或 `O(log n)` | `O(n log n)` | Euler tour / binary lifting / sparse table |
+
+## 常見題型
+
+- [LeetCode 236 · Lowest Common Ancestor of a Binary Tree](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/)
+- [LeetCode 235 · Lowest Common Ancestor of a Binary Search Tree](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree/)
+- [LeetCode 1644 · Lowest Common Ancestor of a Binary Tree II](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree-ii/)
+- [LeetCode 1650 · Lowest Common Ancestor of a Binary Tree III](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree-iii/)
+- [LeetCode 1676 · Lowest Common Ancestor of a Binary Tree IV](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree-iv/)
