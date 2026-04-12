@@ -1,0 +1,100 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 04
+</div>
+
+# 後序走訪 Postorder Traversal
+
+後序走訪是「**先把左右子樹都處理完，最後才處理根節點**」的深度優先走訪：**左 → 右 → 根**。因為根永遠最後輸出，它特別適合先解完子問題再往上合併，像是計算子樹屬性、釋放整棵樹，或輸出 expression tree 的後綴式。
+
+<TreeAlgorithmRunner slug="tree-postorder" initial={[50, 30, 70, 20, 40, 60, 80]} />
+
+## 為什麼會動
+
+後序走訪的遞迴不變量很直接：
+
+> `postorder(node) = postorder(node.left) ++ postorder(node.right) ++ [node.value]`
+
+重點不在「最後才 push 根」這個表面形式，而是它代表一種**自底向上**的資訊流。父節點能不能算出答案，往往取決於左右子樹的答案是否已經就緒；所以函式必須先遞迴到底，再把子樹結果往上交回來。
+
+例如樹高就是典型的後序思維：
+
+```ts
+function maxDepth(node: TreeNode | null): number {
+  if (node === null) return 0;
+  return 1 + Math.max(maxDepth(node.left), maxDepth(node.right));
+}
+```
+
+`maxDepth(node)` 不能一進到 `node` 就立刻得出答案，因為你還不知道左右子樹各有多高。這種「子樹屬性必須先算完，父節點才有值」的 tree DP，骨架幾乎都是後序。
+
+## 優化 / 變形
+
+遞迴版最直觀，但 iterative 版會比前序和中序麻煩一些。最穩定的寫法通常是兩個 stack：
+
+```ts
+function postorderIterative(root: TreeNode | null): number[] {
+  if (!root) return [];
+  const s1: TreeNode[] = [root];
+  const s2: TreeNode[] = [];
+
+  while (s1.length > 0) {
+    const node = s1.pop()!;
+    s2.push(node);
+    if (node.left) s1.push(node.left);
+    if (node.right) s1.push(node.right);
+  }
+
+  const out: number[] = [];
+  while (s2.length > 0) {
+    out.push(s2.pop()!.value);
+  }
+  return out;
+}
+```
+
+另一個常見技巧是先做一個「變形前序」：`root → right → left`，再把結果整體反轉，就會得到 `left → right → root`。這其實是在利用 traversal 順序之間只差一個 `push` 位置與輸出方向的事實。
+
+## 複雜度
+
+### 時間：T(n) = 1 + T(|L|) + T(|R|) → O(n)
+
+每個節點都會被走訪一次，並在最後做一次 `out.push(node.value)`。把遞迴式展開：
+
+```txt
+T(n) = 1 + T(|L|) + T(|R|)
+     = 1 + 左子樹每個節點各貢獻 1 + 右子樹每個節點各貢獻 1
+     = n
+```
+
+不管樹的形狀如何，n 個節點就有 n 次「最後輸出根」的動作，所以總時間是 `O(n)`。
+
+### 空間：O(h)
+
+額外空間主要來自遞迴呼叫堆疊，其深度等於樹高 `h`：
+
+- **平衡樹**：`h ≈ log₂(n)`，空間 `O(log n)`
+- **歪斜樹**：`h = n`，空間 `O(n)`
+
+如果改成 iterative 版，用兩個 stack 時最壞情況仍然是 `O(n)`；若用單一 stack + visited flag，也一樣是在用顯式資料結構模擬這個 `O(h)` 到 `O(n)` 的遞迴展開。
+
+## 跟其他 traversal 比較
+
+| 順序 | 訪問次序 | 典型應用 |
+|---|---|---|
+| 前序 (Preorder) | 根 → 左 → 右 | 複製樹、序列化、prefix expression |
+| 中序 (Inorder) | 左 → 根 → 右 | BST 取得排序結果、infix expression |
+| **後序 (Postorder)** | **左 → 右 → 根** | **刪除整棵樹、計算高度 / 大小 / 直徑、postfix expression** |
+| 層序 (Level-order) | 一層一層由上而下 | BFS、level sum、最短步數、最大寬度 |
+
+三種 DFS 的差別本質上就是 `push(node.value)` 放在哪裡；放在最後，得到的就是先子樹、後父節點的後序。
+
+## 常見題型
+
+後序走訪常出現在以下題目的核心解法裡：
+
+- [LeetCode 145 · Binary Tree Postorder Traversal](https://leetcode.com/problems/binary-tree-postorder-traversal/)
+- [LeetCode 104 · Maximum Depth of Binary Tree](https://leetcode.com/problems/maximum-depth-of-binary-tree/)
+- [LeetCode 236 · Lowest Common Ancestor of a Binary Tree](https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/)
+- [LeetCode 543 · Diameter of Binary Tree](https://leetcode.com/problems/diameter-of-binary-tree/)（bonus：典型的「子樹答案先算完，再更新父節點」）
