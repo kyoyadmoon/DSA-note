@@ -1,0 +1,98 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 02
+</div>
+
+# Symmetric Tree
+
+## 一句話定位
+
+Symmetric Tree 要問的是：**一棵二元樹沿著根節點的中心線對折後，左半邊和右半邊會不會完全重合**。
+
+這題的核心不是 traversal 順序，而是「成對比較」：左邊某個節點要和右邊鏡像位置的節點一起看，不能只看單邊。
+
+## 互動動畫
+
+<TreeAlgorithmRunner slug="tree-symmetric" initial={[4, 2, 6, 1, 3, 5, 7]} />
+
+這個 runner 目前會先用 `buildBSTFromValues` 按插入順序建立 BST，所以它展示的是「在一棵實際長出來的樹上做鏡像檢查」，不是 LeetCode 101 常見的 level-order 序列化輸入。
+
+像上面的 `[4, 2, 6, 1, 3, 5, 7]` 會長成一棵形狀平衡的 BST，但根的左子節點是 `2`、右子節點是 `6`，第一對就失敗；真正的對稱範例像 `[1, 2, 2, 3, 4, 4, 3]` 在純函式與測試裡有覆蓋，只是這個 runner 的輸入轉換器不直接吃那種 level-order 格式。
+
+## 為什麼會動
+
+鏡像不變量是：**每次遞迴處理的不是單一節點，而是一對 `(L, R)`；只要這一對保持鏡像，整棵樹才可能保持鏡像**。
+
+具體來說要同時滿足三件事：
+
+- `L` 和 `R` 都是空節點，這一對直接成立。
+- 只有一側是空節點，這一對立刻失敗。
+- `L.value === R.value`，而且還要繼續檢查外側 `(L.left, R.right)` 與內側 `(L.right, R.left)`。
+
+這就是為什麼程式不是寫成 preorder / inorder / postorder 那種單指標 DFS，而是雙指標 mirror DFS。
+
+## 變形：迭代版 BFS 雙 queue
+
+如果你不想用遞迴，也可以把每一對鏡像節點塞進 queue 逐層檢查：
+
+```ts
+function isSymmetricBfs(root: TreeNode | null): boolean {
+  if (!root) return true;
+
+  const leftQueue: Array<TreeNode | null> = [root.left];
+  const rightQueue: Array<TreeNode | null> = [root.right];
+
+  while (leftQueue.length && rightQueue.length) {
+    const left = leftQueue.shift()!;
+    const right = rightQueue.shift()!;
+
+    if (!left && !right) continue;
+    if (!left || !right) return false;
+    if (left.value !== right.value) return false;
+
+    leftQueue.push(left.left, left.right);
+    rightQueue.push(right.right, right.left);
+  }
+
+  return leftQueue.length === rightQueue.length;
+}
+```
+
+重點不在 BFS 或 DFS，而在於兩個 queue 的入隊順序必須互為鏡像：左邊是 `left, right`，右邊就要是 `right, left`。
+
+## 複雜度推導
+
+### 時間複雜度
+
+每一個非空節點最多只會被拿出來比較一次，所以如果樹有 `n` 個節點：
+
+```text
+T(n) = T(左子樹) + T(右子樹) + O(1)
+```
+
+把所有子問題加總起來，就是每個節點各付一次常數成本，因此總時間是 **O(n)**。
+
+最好情況是根的兩側第一對就失敗，例如左邊是 `2`、右邊是 `6`，這時只做常數次比較，所以最好情況可以視為 **O(1)**；但平均與最壞都要把整棵樹走完，因此仍然寫 **O(n)**。
+
+### 空間複雜度
+
+遞迴版真正額外使用的是 call stack。若樹高是 `h`，遞迴最深就會壓到 `h` 層，所以空間是 **O(h)**。
+
+- 平衡樹：`h ≈ log₂ n`，空間接近 **O(log n)**
+- 鏈狀樹：`h = n`，空間退化成 **O(n)**
+
+## 四種 traversal 比較表
+
+| 方式 | 訪問順序 | 能不能直接判斷對稱 | 典型用途 |
+|---|---|---|---|
+| Preorder | 根 → 左 → 右 | 不行 | 複製樹、序列化結構 |
+| Inorder | 左 → 根 → 右 | 不行 | BST 取有序結果 |
+| Postorder | 左 → 右 → 根 | 不行 | 刪除樹、先算子樹再回傳 |
+| Mirror DFS | `(L, R)` 成對比較 | 可以 | Symmetric Tree、Same Tree 的鏡像版 |
+
+關鍵差別是前三種 traversal 都是在「走一棵樹的一條路」，Symmetric Tree 則是在「同時走左右兩條鏡像路徑」。
+
+## LeetCode 101
+
+- [LeetCode 101 · Symmetric Tree](https://leetcode.com/problems/symmetric-tree/)

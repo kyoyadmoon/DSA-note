@@ -100,6 +100,11 @@ import {
   invertTreeSource,
   invertTreeSteps,
 } from "@/lib/algorithms/tree/invert";
+import {
+  symmetricMeta,
+  symmetricSource,
+  symmetricSteps,
+} from "@/lib/algorithms/tree/symmetric";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -191,6 +196,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: invertTreeMeta,
     source: invertTreeSource,
     steps: invertTreeSteps,
+  },
+  "tree-symmetric": {
+    meta: symmetricMeta,
+    source: symmetricSource,
+    steps: symmetricSteps,
   },
 };
 
