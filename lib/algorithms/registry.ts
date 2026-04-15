@@ -95,6 +95,11 @@ import {
   pathCompressionSource,
   pathCompressionSteps,
 } from "@/lib/algorithms/graph/union-find/pathCompression";
+import {
+  invertTreeMeta,
+  invertTreeSource,
+  invertTreeSteps,
+} from "@/lib/algorithms/tree/invert";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -181,6 +186,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: diameterMeta,
     source: diameterSource,
     steps: diameterSteps,
+  },
+  "tree-invert": {
+    meta: invertTreeMeta,
+    source: invertTreeSource,
+    steps: invertTreeSteps,
   },
 };
 

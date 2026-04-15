@@ -34,6 +34,7 @@ const LEGEND_ITEMS: readonly LegendItem[] = [
   { state: "idle", label: "未操作", color: "var(--color-bar-idle)" },
   { state: "comparing", label: "正在比較", color: "var(--color-bar-compare)" },
   { state: "path", label: "目前路徑", color: "var(--color-bar-pivot)" },
+  { state: "swap", label: "交換中", color: "var(--color-bar-swap)" },
   { state: "visited", label: "已走訪", color: "var(--color-bar-visited)" },
   { state: "found", label: "已找到", color: "var(--color-bar-swap)" },
   { state: "inserted", label: "新插入節點", color: "var(--color-bar-sorted)" },
@@ -63,6 +64,7 @@ function getNodeColor(state: TreeNodeState): string {
       return "var(--color-bar-sorted)";
     case "visited":
       return "var(--color-bar-visited)";
+    case "swap":
     case "found":
       return "var(--color-bar-swap)";
     case "path":
@@ -73,7 +75,9 @@ function getNodeColor(state: TreeNodeState): string {
 }
 
 function getNodeScale(state: TreeNodeState): number {
-  if (state === "comparing" || state === "inserted") return 1.15;
+  if (state === "comparing" || state === "inserted" || state === "swap") {
+    return 1.15;
+  }
   return 1;
 }
 
@@ -198,8 +202,8 @@ export function TreeRenderer({ step, direction = 0, usedStates }: Props) {
                     strokeWidth: isActive ? 3 : 2,
                   }}
                   variants={{
-                    exit: (dir: number) =>
-                      dir < 0
+                    exit: (stepDirection: number) =>
+                      stepDirection < 0
                         ? {
                             pathLength: 0,
                             opacity: 0,
@@ -264,9 +268,9 @@ export function TreeRenderer({ step, direction = 0, usedStates }: Props) {
                   y: n.y,
                 }}
                 variants={{
-                  exit: (dir: number) => ({
+                  exit: (stepDirection: number) => ({
                     opacity: 0,
-                    scale: dir < 0 ? 0.92 : 0.86,
+                    scale: stepDirection < 0 ? 0.92 : 0.86,
                     x: n.x,
                     y: n.y,
                     transition: {
@@ -289,7 +293,7 @@ export function TreeRenderer({ step, direction = 0, usedStates }: Props) {
                 }}
               >
                 {/* Glow ring for active nodes */}
-                {(state === "comparing" || state === "inserted") && (
+                {(state === "comparing" || state === "inserted" || state === "swap") && (
                   <motion.circle
                     r={NODE_RADIUS + 6}
                     fill="none"
@@ -318,7 +322,7 @@ export function TreeRenderer({ step, direction = 0, usedStates }: Props) {
                   textAnchor="middle"
                   dominantBaseline="central"
                   className="font-mono text-base font-bold select-none"
-                  fill="#0b0d12"
+                  fill="var(--color-background)"
                   fontSize={18}
                 >
                   {n.value}

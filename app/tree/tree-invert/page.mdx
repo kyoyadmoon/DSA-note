@@ -1,0 +1,90 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 06
+</div>
+
+# 翻轉二元樹 Invert Binary Tree
+
+翻轉二元樹是把每個節點的左右子樹整棵對調一次的經典遞迴題；它本質上是在每個節點做一次 pointer swap，也是 [LeetCode 226](https://leetcode.com/problems/invert-binary-tree/) 最標準的入門樹題之一。
+
+<TreeAlgorithmRunner slug="tree-invert" initial={[50, 30, 70, 20, 40, 60, 80]} />
+
+## 為什麼會動
+
+這題的遞迴 invariant 很直接：
+
+> **先把左右子樹各自翻完，再回到根節點交換左右指標。**
+
+也就是說，當你準備交換某個節點時，它底下兩棵子樹都已經各自是「翻完」的狀態，所以現在只剩把它們的位置左右對調。這就是典型的 **post-order** 思維：`left` 做完、`right` 做完、最後才處理 `root`。
+
+動畫裡你會看到目前節點先被標成比較中，接著一路往下遞迴；等左右兩側都完成後，才出現橘色的交換步驟，然後整個子樹的形狀瞬間左右鏡射。這種「子樹翻完再翻根」的節奏，就是這題會動起來的原因。
+
+## 優化 / 變形
+
+遞迴版最直觀，但不是唯一寫法。你也可以用 **stack** 寫成 iterative DFS，或用 **queue** 寫成 BFS，做法都是把每個節點取出後立刻交換它的 `left` / `right`，再把非空子節點放回資料結構裡等待處理。
+
+```ts
+function invertTreeIterative(root: TreeNode | null): TreeNode | null {
+  if (root === null) return null;
+
+  const queue: TreeNode[] = [root];
+  while (queue.length > 0) {
+    const node = queue.shift()!;
+    [node.left, node.right] = [node.right, node.left];
+    if (node.left !== null) queue.push(node.left);
+    if (node.right !== null) queue.push(node.right);
+  }
+
+  return root;
+}
+```
+
+如果你想保留 DFS 的處理順序，就把 `queue` 換成 `stack`；如果你想一層一層翻，就保留 `queue`。核心都一樣：**每個節點只需要交換一次。**
+
+## 複雜度
+
+### 時間：O(n)
+
+每個節點都會被走到一次，而且在那一次只做固定工作：
+
+- 遞迴進入左右子樹
+- 交換一次左右指標
+
+因此總工作量就是
+
+```text
+T(n) = T(|L|) + T(|R|) + O(1)
+     = 每個節點各貢獻一次常數工作
+     = O(n)
+```
+
+不管樹是平衡還是歪斜，只要有 `n` 個節點，就會做 `n` 次節點處理。
+
+### 空間：O(h)
+
+遞迴版額外空間來自 call stack，深度等於樹高 `h`：
+
+- **平衡樹**：`h ≈ log₂(n)`，所以空間是 `O(log n)`
+- **最壞情況 skewed tree**：整棵樹退化成一條鏈，`h = n`，所以空間會變成 `O(n)`
+
+因此這題常寫成 `O(h)`，其中 `h` 就是樹高；只有在最壞的歪斜情況下，`O(h)` 才會退化成 `O(n)`。
+
+## 跟其他樹題比較
+
+| 題目 | 核心動作 | 走訪順序 | 是否改動樹結構 | 常見用途 |
+|---|---|---|---|---|
+| **翻轉二元樹** | 交換每個節點的左右子樹 | 後序最自然 | **會** | 理解遞迴、樹的鏡射、指標操作 |
+| **前序走訪** | 輸出根，再走左右子樹 | 根 → 左 → 右 | 不會 | 序列化、複製樹、前綴式輸出 |
+| BST 插入 | 找到空位後掛上新節點 | 沿路比較 | 會 | 維持 BST 性質 |
+| 層序走訪 | 逐層輸出節點 | BFS | 不會 | level sum、最短層數、視圖題 |
+
+翻轉題和 preorder 最大的差別在於：**preorder 只讀取樹，invert 會改寫樹**；preorder 在進入節點當下就做事，invert 則要等左右子樹都完成後才交換根。
+
+## 常見題型
+
+這題本身以及它的變形，最常見的入口就是：
+
+- [LeetCode 226 · Invert Binary Tree](https://leetcode.com/problems/invert-binary-tree/)
+
+延伸時常會和 traversal、樹的鏡射判斷、或序列化結果一起考，所以 preorder / postorder / level-order 的思路通常也會一起出現。

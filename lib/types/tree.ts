@@ -14,7 +14,14 @@ export type TreePhase =
   | "visit"
   | "done";
 
-export type TreeNodeState = "idle" | "comparing" | "inserted" | "visited" | "found" | "path";
+export type TreeNodeState =
+  | "idle"
+  | "comparing"
+  | "inserted"
+  | "visited"
+  | "found"
+  | "path"
+  | "swap";
 
 export type TreeStep = {
   /** Deep-copied root of the tree at this point in the algorithm */
