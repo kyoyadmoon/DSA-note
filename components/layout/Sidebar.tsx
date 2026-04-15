@@ -14,6 +14,7 @@ const TREE_LINKS = [
   { href: "/tree/tree-diameter", label: "二元樹直徑" },
   { href: "/tree/tree-invert", label: "翻轉樹" },
   { href: "/tree/tree-symmetric", label: "對稱樹" },
+  { href: "/tree/tree-path-sum", label: "路徑總和" },
 ] as const;
 
 const SORTING_LINKS = [

@@ -1,0 +1,64 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 02
+</div>
+
+# 路徑總和
+
+Path Sum 是一題最典型的 tree DFS：你從根一路往下，把目前還差多少一起帶進子問題，直到葉節點才決定這條路徑是不是答案。
+
+<TreeAlgorithmRunner slug="tree-path-sum" initial={[10, 5, 15, 3, 7, 12, 18, 1]} />
+
+## 為什麼會動
+
+這題的 invariant 很簡單：**當你站在某個節點 `node` 時，子問題其實是「它的子樹裡有沒有一條 root-to-leaf 路徑，總和等於 `target - node.value`」**。所以每往下一層，目標就扣掉目前節點的值，剩下的 `remaining` 交給下一層。
+
+這也是為什麼判定必須發生在 **leaf**。如果你在中途遇到某個內部節點就看到 `remaining === 0` 而直接回傳 `true`，會把還沒走到葉子的半條路誤判成完整答案；題目要的是 **root 到 leaf** 的完整路徑，不是任意 prefix。
+
+從呼叫堆疊的角度看，`accumulated` 或 `remaining` 都是在每一層遞迴裡往下傳遞的狀態。上一層決定走左或走右，下一層接手更新後的值，直到葉節點才把這一路累積的結果一次判定。
+
+視覺化播放器如果沒有手動傳入 `target`，會**固定選左側優先的最左 root→leaf 路徑總和**當作目標值；也就是一路優先走 `left`，沒有 `left` 才走 `right`。以上面的 BST 例子來說，省略 `target` 時會取 `10 + 5 + 3 + 1 = 19`，因此預設就能看到一條成功路徑。
+
+## 優化 / 變形
+
+如果你不想用遞迴，也可以改成迭代版：stack 裡存 `(node, remaining)`，每次 pop 一個節點，扣掉它的值後把左右子節點再 push 回去。核心 invariant 完全不變，只是把 call stack 換成你自己管理的 stack。
+
+這題也常常延伸成兩個方向：
+
+- **LeetCode 113**：不是只問有沒有，而是要回傳所有符合的 root-to-leaf 路徑，所以你還要額外維護當前 path 陣列。
+- **LeetCode 437**：路徑可以從任意起點開始，不再限定 root-to-leaf，因此不能只靠單一路徑的 `remaining`，通常會改用 prefix sum 思維。
+
+## 複雜度
+
+### 時間複雜度怎麼算
+
+時間是 **O(n)**，因為每個節點最多只會被 DFS 訪問一次。到達節點時只做常數次工作：扣掉節點值、判斷是不是葉節點、決定要不要往左右子樹遞迴，所以整體就是把所有節點掃過一次。
+
+這和一般 tree traversal 的推導完全一樣：preorder / inorder / postorder 都是在每個節點做 O(1) 的事，再把左右子樹各走一遍，因此總成本都是所有節點加總後的 `n`。
+
+### 空間複雜度怎麼算
+
+空間是 **O(h)**，因為額外空間主要來自遞迴呼叫堆疊，深度等於樹高 `h`。
+
+- **最壞 O(n)**：樹退化成單鏈時，每次只往一個子節點走，堆疊深度就是節點數。
+- **平衡 O(log n)**：平衡樹每往下一層節點數大約翻倍，所以高度是 `log n`。
+
+因此 Path Sum 跟 traversal 類問題一樣，本質上都是「沿著一條 root-to-leaf 路徑前進」，只是多帶了一個累計或剩餘目標值。
+
+## 跟其他 tree DFS 的比較
+
+| 題型 | DFS 順序 | 何時做決定 | 決定依賴什麼 |
+|---|---|---|---|
+| Preorder | 根 → 左 → 右 | 一進到節點就處理 | 當前節點本身 |
+| Inorder | 左 → 根 → 右 | 左子樹回來後才處理根 | 左子樹是否已完成 |
+| Postorder | 左 → 右 → 根 | 兩個子樹都完成後才處理根 | 左右子樹的結果 |
+| Path Sum | 根 → 左 / 右，直到葉 | **只在葉節點判定** | 從根累積下來的總和或 remaining |
+
+Path Sum 的關鍵差異不在 traversal 順序本身，而在**決定時機**：你可以像 preorder 那樣一路向下探索，但真正的 `true / false` 只能在 leaf 做，因為題目要求的是完整 root-to-leaf 路徑。
+
+## 常見題型
+
+- [LeetCode 112 · Path Sum](https://leetcode.com/problems/path-sum/)
+- [LeetCode 113 · Path Sum II](https://leetcode.com/problems/path-sum-ii/)
+- [LeetCode 437 · Path Sum III](https://leetcode.com/problems/path-sum-iii/)
