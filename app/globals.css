@@ -15,6 +15,7 @@
   --bar-swap: #fb923c;
   --bar-pivot: #a78bfa;
   --bar-sorted: #34d399;
+  --bar-visited: #2dd4bf;
   --bar-text: #0b0d12;
 }
 
@@ -33,6 +34,7 @@
   --color-bar-swap: var(--bar-swap);
   --color-bar-pivot: var(--bar-pivot);
   --color-bar-sorted: var(--bar-sorted);
+  --color-bar-visited: var(--bar-visited);
 
   --font-sans: var(--font-inter);
   --font-serif: var(--font-fraunces);

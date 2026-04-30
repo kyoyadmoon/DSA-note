@@ -38,11 +38,28 @@ const components: MDXComponents = {
   em: ({ children }) => (
     <em className="italic text-foreground">{children}</em>
   ),
-  code: ({ children }) => (
-    <code className="font-mono text-[0.88em] px-1.5 py-0.5 rounded bg-surface-raised border border-border text-accent">
+  pre: ({ children, ...props }) => (
+    <pre
+      className="my-6 overflow-x-auto rounded-xl border border-border bg-surface-raised p-4 text-[14px] leading-relaxed font-mono"
+      {...props}
+    >
       {children}
-    </code>
+    </pre>
   ),
+  code: (props) => {
+    const { children, ...rest } = props as React.ComponentProps<"code"> & {
+      "data-language"?: string;
+    };
+    // If rehype-pretty-code processed this code (fenced block), render without inline styling
+    if ("data-language" in rest) {
+      return <code {...rest}>{children}</code>;
+    }
+    return (
+      <code className="font-mono text-[0.88em] px-1.5 py-0.5 rounded bg-surface-raised border border-border text-accent">
+        {children}
+      </code>
+    );
+  },
   blockquote: ({ children }) => (
     <blockquote className="border-l-2 border-accent/60 pl-4 py-1 my-6 text-foreground/75 italic">
       {children}
