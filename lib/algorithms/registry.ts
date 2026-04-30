@@ -15,6 +15,11 @@ import {
   preorderSource,
   preorderSteps,
 } from "@/lib/algorithms/tree/preorder";
+import {
+  levelOrderMeta,
+  levelOrderSource,
+  levelOrderSteps,
+} from "@/lib/algorithms/tree/levelOrder";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -46,6 +51,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: preorderMeta,
     source: preorderSource,
     steps: preorderSteps,
+  },
+  "tree-level-order": {
+    meta: levelOrderMeta,
+    source: levelOrderSource,
+    steps: levelOrderSteps,
   },
 };
 

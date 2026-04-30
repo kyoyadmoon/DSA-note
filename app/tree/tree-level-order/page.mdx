@@ -1,0 +1,108 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 05
+</div>
+
+# 層序走訪 Level-order Traversal
+
+層序走訪是樹上的 **BFS**：**一層一層由上到下、同層由左到右** 地處理節點。它靠的是 **FIFO queue**，不是 stack，也不是遞迴，所以特別適合最短路徑、每層聚合、視圖題這類「誰先到這一層」很重要的問題。
+
+<TreeAlgorithmRunner slug="tree-level-order" initial={[50, 30, 70, 20, 40, 60, 80]} />
+
+## 為什麼會動
+
+層序走訪的核心不變量是：
+
+> **queue 中的節點，depth 會維持非遞減排列。**
+
+一開始只有根節點，深度最小。每次從 queue 前端取出一個節點後，再把它的左子、右子接到尾端。因為父節點一定比孩子更淺，所以新加入的節點不可能插隊到更淺的層前面；因為我們總是先 enqueue left、再 enqueue right，所以同一層也自然會維持由左到右的順序。
+
+動畫裡你會看到：
+
+- **藍色節點**是剛從 queue 前端取出的當前節點
+- **紫色節點**是還留在 queue 裡等待處理的節點
+- **灰色背景的節點**代表這個節點已經輸出完，可以視為整個完成
+- `detail` 裡的 `queue: [...]` 會直接顯示 FIFO 目前的內容
+
+整個過程就是 dequeue 一個節點 → 輸出它 → enqueue 左右孩子 → 換下一個 queue front，如此反覆。
+
+## 優化 / 變形
+
+最常見的變形是「按層分組」：不是回傳一條平的 `number[]`，而是回傳 `number[][]`。做法是在每一層開始時先記住 `queue.length`，那就是這一層的節點數；接著只跑那麼多次，把同層的值收進同一個陣列。這是 LeetCode 102 的標準寫法。
+
+```ts
+function levelOrderByLevel(root: TreeNode | null): number[][] {
+  if (root === null) return [];
+
+  const out: number[][] = [];
+  const queue: TreeNode[] = [root];
+
+  while (queue.length > 0) {
+    const size = queue.length;
+    const level: number[] = [];
+
+    for (let i = 0; i < size; i++) {
+      const node = queue.shift()!;
+      level.push(node.value);
+      if (node.left !== null) queue.push(node.left);
+      if (node.right !== null) queue.push(node.right);
+    }
+
+    out.push(level);
+  }
+
+  return out;
+}
+```
+
+如果你只想記錄每層最後一個節點，就會得到像 LeetCode 199 Right Side View 這種題。再往前一步，把奇數層反向輸出，就是 Zigzag Level Order Traversal。這些題目的骨架都還是同一個 queue-driven BFS。
+
+這篇示範程式為了可讀性直接使用 `Array.shift()`；但要注意 `shift()` 在 JavaScript 陣列上是 `O(n)`。實務上若資料量很大，通常會改成 index pointer，或直接用真正的 deque 結構。
+
+## 複雜度
+
+### 時間：每個節點 enqueue / dequeue 各一次，所以是 O(n)
+
+每個節點只會做固定次數的操作：
+
+- 進 queue 一次
+- 出 queue 一次
+- 輸出到答案一次
+
+因此總工作量跟節點數 `n` 成正比，時間複雜度就是 `T(n) = O(n)`。
+
+### 空間：queue 最大長度等於最寬的一層，所以是 O(w)
+
+BFS 的額外空間全部來自 queue。queue 在任何時刻最多會裝下「某一層尚未處理完的節點 + 下一層剛加入的節點」，量級上可以視為樹的最大寬度 `w`。
+
+- **perfect binary tree** 的最底層大約有 `n / 2` 個節點，所以 `O(w) = O(n / 2) = O(n)`
+- **很瘦的樹**（接近鏈）時，queue 幾乎只會有 1 個節點，空間就接近 `O(1)`
+
+這也是 BFS 與 DFS 的主要 trade-off：
+
+- DFS 通常吃的是遞迴 / stack 深度，空間 `O(h)`
+- BFS 吃的是同層寬度，空間 `O(w)`
+
+平衡樹通常是 BFS 比 DFS 更耗空間；極度歪斜的樹則常常反過來，DFS 的 `O(h)` 可能更差。
+
+## 跟其他 traversal 比較
+
+| 走訪 | 訪問次序 | 主要資料結構 | 額外空間 | 典型用途 |
+|---|---|---|---|---|
+| 前序 (Preorder) | 根 → 左 → 右 | recursion / stack | O(h) | 複製樹、序列化 |
+| 中序 (Inorder) | 左 → 根 → 右 | recursion / stack | O(h) | BST 排序輸出 |
+| 後序 (Postorder) | 左 → 右 → 根 | recursion / stack | O(h) | 刪樹、子樹 DP |
+| **層序 (Level-order)** | **逐層、由左到右** | **queue** | **O(w)** | **level sum、最短路徑、right side view、最小深度** |
+
+前三者都是 DFS，只是「什麼時候處理根節點」不同；層序走訪則是完全不同的思路，因為它優先保證的是深度順序。
+
+## 常見題型
+
+層序走訪本身和它的變形，會直接出現在這些題：
+
+- [LeetCode 102 · Binary Tree Level Order Traversal](https://leetcode.com/problems/binary-tree-level-order-traversal/)
+- [LeetCode 103 · Binary Tree Zigzag Level Order Traversal](https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/)
+- [LeetCode 199 · Binary Tree Right Side View](https://leetcode.com/problems/binary-tree-right-side-view/)
+- [LeetCode 637 · Average of Levels in Binary Tree](https://leetcode.com/problems/average-of-levels-in-binary-tree/)
+- [LeetCode 111 · Minimum Depth of Binary Tree](https://leetcode.com/problems/minimum-depth-of-binary-tree/)
