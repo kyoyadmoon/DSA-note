@@ -35,6 +35,11 @@ import {
   quickUnionSource,
   quickUnionSteps,
 } from "@/lib/algorithms/graph/union-find/quickUnion";
+import {
+  weightedQuickUnionMeta,
+  weightedQuickUnionSource,
+  weightedQuickUnionSteps,
+} from "@/lib/algorithms/graph/union-find/weightedQuickUnion";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -102,6 +107,11 @@ export const unionFindRegistry: Record<string, UnionFindAlgorithmEntry> = {
     meta: quickUnionMeta,
     source: quickUnionSource,
     steps: quickUnionSteps,
+  },
+  "uf-weighted-quick-union": {
+    meta: weightedQuickUnionMeta,
+    source: weightedQuickUnionSource,
+    steps: weightedQuickUnionSteps,
   },
 };
 

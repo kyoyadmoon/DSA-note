@@ -1,0 +1,95 @@
+import { UnionFindAlgorithmRunner } from "@/components/visualizer/UnionFindAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Union Find · 03
+</div>
+
+# Weighted Quick Union
+
+> 沒讀過 [Quick Find](/graph/uf-quick-find#union-find-在解什麼問題) 的話，先去看那頁的開頭。本頁假設你已經懂 [Quick Union](/graph/uf-quick-union)（parent 鏈 / 森林結構），這次只討論「怎麼避免樹退化成鏈」。
+
+[Quick Union](/graph/uf-quick-union) 的問題是 union 順序會讓樹退化成鏈。修法很簡單：**永遠把矮樹接到高樹底下**，這樣樹高被壓在 `O(log n)` 之內。我們在每個 root 旁邊維護一個 `rank`（這棵樹的「秩」，可以理解成樹高的上界），union 時比較 rank 決定誰當 parent。
+
+<UnionFindAlgorithmRunner
+  slug="uf-weighted-quick-union"
+  n={8}
+  showRanks
+  ops={[
+    { kind: "union", p: 0, q: 1 },
+    { kind: "union", p: 2, q: 3 },
+    { kind: "union", p: 4, q: 5 },
+    { kind: "union", p: 6, q: 7 },
+    { kind: "union", p: 0, q: 2 },
+    { kind: "union", p: 4, q: 6 },
+    { kind: "union", p: 0, q: 4 },
+    { kind: "find", x: 7 },
+  ]}
+/>
+
+## ops 順序在這裡被吸收掉了
+
+跟 [Quick Find](/graph/uf-quick-find#ops-從哪來下一個-union-是誰) 一樣，這個 ops 序列是 MDX 寫死的、Union Find 自己不挑順序。但 weighted 跟 [Quick Union](/graph/uf-quick-union#ops-順序在這裡開始有影響) 的差別是：**不管呼叫端餵什麼順序，weighted 都能把樹高壓在 `O(log n)`**。
+
+這頁刻意挑了 `union(0,1) union(2,3) union(4,5) union(6,7) union(0,2) union(4,6) union(0,4)` 這種「每對先結對、再兩兩配」的順序，目的是讓你看到 union by rank 的最佳形狀規律——最終會得到一棵高度恰好 `log₂(8) = 3` 的平衡樹。
+
+按 `Random` 會生成隨機序列，你會看到不論順序怎麼亂，樹高都不會超過 `⌈log₂ 8⌉ = 3`。對比 Quick Union 那頁刻意餵壞順序就會長出鏈狀樹的情況，這就是 weighted 的核心承諾。
+
+## 為什麼會動
+
+新增的 invariant：
+
+> **沒有 path compression 時，rank[root] 等於這棵樹的高度**
+
+rank 只在「兩棵同 rank 的樹合併」時 +1。rank 為 k 的 component 至少包含 `2^k` 個節點，因此 `rank ≤ ⌊log₂(component size)⌋`。下一頁加入 path compression 後，實際樹高可能下降，rank 便改為樹高的上界。
+
+動畫裡注意三件事：
+
+1. 每個節點下方標的小字 `r=k` 就是 rank（只有 root 的 rank 真的有意義，但為了視覺對齊我們在每個節點下都顯示）
+2. 每次 union 都會看到「比較兩個 root 的 rank」這一步
+3. 兩棵樹 rank 相同時，任意挑一邊當 parent，並把它的 rank +1
+
+## 優化方向
+
+樹高已經是 `O(log n)`，但 find 走鏈時走過的節點其實「白走」了——下次 find 同一個元素還要再走一遍。能不能順便把走過的節點直接接到 root？
+
+→ 下一頁：[Weighted + Path Compression](/graph/uf-path-compression)
+
+## 複雜度
+
+### 樹高 ≤ ⌈log₂ n⌉
+
+**歸納證明**（針對「rank 為 k 的樹至少包含 2^k 個節點」）：
+
+- **基底**：rank=0 只有單節點，1 ≥ 2⁰ ✓
+- **歸納步驟**：rank 為 k 的樹只在「兩棵 rank 為 k-1 的樹合併」時產生。兩棵 rank=(k-1) 的樹各至少有 `2^(k-1)` 個節點，合併後至少 `2 · 2^(k-1) = 2^k` 個節點 ✓
+
+因為整棵森林只有 n 個節點，rank ≤ `log₂ n`。樹高 ≤ rank，所以也 ≤ `log₂ n`。
+
+### find / union：O(log n)
+
+```
+T_find(n) = O(tree height) = O(log n)
+T_union(n) = 2 · T_find(n) + O(1) = O(log n)
+```
+
+### 空間：O(n)
+
+`parents` 與 `ranks` 各 n 格。
+
+## 跟其他變體比較
+
+| 變體 | find | union | 樹高保證 |
+|---|---|---|---|
+| [Quick Find](/graph/uf-quick-find) | O(1) | O(n) | — |
+| [Quick Union](/graph/uf-quick-union) | O(n) | O(n) | 無，可退化成鏈 |
+| **Weighted Quick Union**（本頁） | O(log n) | O(log n) | ⌈log₂ n⌉ |
+| [Weighted + Path Compression](/graph/uf-path-compression) | α(n) | α(n) | 攤銷後幾乎是常數 |
+
+## 常見題型
+
+實務上 weighted quick union 已經夠快，是大部分 LeetCode 題目的合格解：
+
+- [LeetCode 685 · Redundant Connection II](https://leetcode.com/problems/redundant-connection-ii/)
+- [LeetCode 721 · Accounts Merge](https://leetcode.com/problems/accounts-merge/)
+- [LeetCode 1584 · Min Cost to Connect All Points](https://leetcode.com/problems/min-cost-to-connect-all-points/)（Kruskal MST 用 DSU）
+- [LeetCode 959 · Regions Cut By Slashes](https://leetcode.com/problems/regions-cut-by-slashes/)
