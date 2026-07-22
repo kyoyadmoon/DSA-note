@@ -1,0 +1,81 @@
+import { AlgorithmRunner } from "@/components/visualizer/AlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Sorting · 02
+</div>
+
+# Selection Sort
+
+Selection sort 每一輪都做同一件事：**在未排序區找出最小值，和未排序區的第一格交換**。第一輪把全陣列最小值放到 `a[0]`，第二輪把剩餘最小值放到 `a[1]`，直到只剩最後一格。
+
+它和 [Bubble Sort](/sorting/bubble-sort) 都需要 `O(n²)` 次比較，但資料移動方式不同：Bubble sort 會沿路做相鄰交換；Selection sort 每輪最多交換一次，因此總交換次數最多 `n - 1`。
+
+<AlgorithmRunner slug="selection-sort" initial={[7, 3, 8, 2, 6, 1]} />
+
+## 為什麼會動
+
+第 `i` 輪開始時，陣列分成兩區：
+
+- `a[0..i-1]` 是已排序區，內容是原陣列最小的 `i` 個值，而且已由小到大排列
+- `a[i..n-1]` 是未排序區
+
+內層迴圈用 `minIndex` 記住目前看過的最小值位置。掃完整個未排序區後，`a[minIndex]` 一定是該區最小值。把它交換到 `a[i]`，已排序區就能安全地向右增加一格。
+
+這個 invariant 每輪都成立；完成 `n - 1` 輪後，最後一個元素也自然位於正確位置。
+
+## `i`、`j`、`min` 各自做什麼
+
+- `i`：未排序區的第一格，也是本輪最小值要放入的位置
+- `j`：目前正在檢查的位置，從 `i + 1` 一路向右掃
+- `min`：目前看過範圍內最小值的位置；找到更小值時才更新
+
+動畫中的紫色方塊表示目前的 `min`。掃描期間只更新索引，不搬動元素；等整輪掃完才做一次交換。
+
+## 複雜度
+
+### 時間：所有情況都是 O(n²)
+
+Selection sort 無法像 Bubble sort 一樣用「這輪沒有交換」判斷已排序。即使輸入本來就是 `[1, 2, 3, 4, 5]`，每一輪仍必須掃完未排序區，才能確認當前值確實最小。
+
+比較總數固定為：
+
+```
+(n - 1) + (n - 2) + ... + 1 = n(n - 1) / 2 = Θ(n²)
+```
+
+所以最好、平均、最壞時間都是 `O(n²)`。
+
+### 交換：最多 n - 1 次
+
+每輪最多交換一次；如果最小值本來就在 `a[i]`，該輪甚至不用交換。這讓 Selection sort 適合「比較便宜、寫入昂貴」且資料量很小的情境，但 `O(n²)` 比較仍限制了整體效能。
+
+### 空間：O(1)
+
+除了 `i`、`j`、`minIndex` 與交換暫存值，不需要額外資料結構，因此是 in-place。
+
+## 為什麼不穩定
+
+標準 Selection sort 的長距離交換可能讓相等元素互相跨越。例如替相同數值加上身份標記：
+
+```
+[2a, 2b, 1]
+```
+
+第一輪會交換 `2a` 與 `1`，得到 `[1, 2b, 2a]`。兩個 `2` 的原始順序從 `2a → 2b` 變成 `2b → 2a`，所以標準版本不穩定。
+
+可以改成把最小值抽出、其餘元素右移一格來保留穩定性，但那會增加資料搬移次數，也不再是這頁展示的交換版本。
+
+## 跟其他排序比較
+
+| 排序 | 最好時間 | 平均 / 最壞 | 交換或搬移 | 穩定 |
+|---|---|---|---|---|
+| [Bubble](/sorting/bubble-sort) | O(n) | O(n²) | 最壞 O(n²) 次交換 | 是 |
+| **Selection**（本頁） | O(n²) | O(n²) | 最多 n - 1 次交換 | 否 |
+| [Insertion](/sorting/insertion-sort) | O(n) | O(n²) | 最壞 O(n²) 次搬移 | 是 |
+
+## 常見題型
+
+Selection sort 本身較常用於教學或小型固定資料；面試題更常考它延伸出的「只找第 k 小，不必排完整個陣列」思路：
+
+- [LeetCode 215 · Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/)（延伸到 Quickselect）
+- [LeetCode 912 · Sort an Array](https://leetcode.com/problems/sort-an-array/)（用來比較 O(n²) 與 O(n log n) 排序）

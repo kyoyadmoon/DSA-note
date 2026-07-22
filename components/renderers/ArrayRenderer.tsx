@@ -17,16 +17,8 @@ const SWAP_SCALE = 1.12;
 const SWAP_DURATION_MS = 820;
 const SWAP_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-const LEGEND_ITEMS = [
-  { label: "未排序", color: "var(--color-bar-idle)" },
-  { label: "比較中", color: "var(--color-bar-compare)" },
-  { label: "交換中", color: "var(--color-bar-swap)" },
-  { label: "Pivot", color: "var(--color-bar-pivot)" },
-  { label: "已就位", color: "var(--color-bar-sorted)" },
-] as const;
-
 export function ArrayRenderer({ step }: Props) {
-  const { array, comparing, swapping, sorted, pivot, pointers } = step;
+  const { array, comparing, swapping, sorted, pivot, selected, pointers } = step;
   const n = array.length;
   const itemRefs = useRef(new Map<string, HTMLDivElement>());
   const prevCentersRef = useRef(new Map<string, number>());
@@ -39,10 +31,23 @@ export function ArrayRenderer({ step }: Props) {
     swapping?.[0] === i || swapping?.[1] === i;
   const isSorted = (i: number) => sorted?.includes(i) ?? false;
   const isPivot = (i: number) => pivot === i;
+  const isSelected = (i: number) => selected === i;
+
+  const legendItems = [
+    { label: "未排序", color: "var(--color-bar-idle)" },
+    { label: "比較中", color: "var(--color-bar-compare)" },
+    { label: "交換中", color: "var(--color-bar-swap)" },
+    {
+      label: step.focusLabel ?? "Pivot",
+      color: "var(--color-bar-pivot)",
+    },
+    { label: "已就位", color: "var(--color-bar-sorted)" },
+  ];
 
   const getColor = (i: number) => {
     if (isSwapping(i)) return "var(--color-bar-swap)";
     if (isComparing(i)) return "var(--color-bar-compare)";
+    if (isSelected(i)) return "var(--color-bar-pivot)";
     if (isPivot(i)) return "var(--color-bar-pivot)";
     if (isSorted(i)) return "var(--color-bar-sorted)";
     return "var(--color-bar-idle)";
@@ -62,8 +67,9 @@ export function ArrayRenderer({ step }: Props) {
   const getScale = (i: number) => (isSwapping(i) ? SWAP_SCALE : 1);
 
   useLayoutEffect(() => {
-    runningAnimationsRef.current.forEach((animation) => animation.cancel());
-    runningAnimationsRef.current.clear();
+    const runningAnimations = runningAnimationsRef.current;
+    runningAnimations.forEach((animation) => animation.cancel());
+    runningAnimations.clear();
 
     const currentCenters = new Map<string, number>();
     for (const item of array) {
@@ -138,12 +144,12 @@ export function ArrayRenderer({ step }: Props) {
           },
         );
 
-        runningAnimationsRef.current.set(item.id, animation);
+        runningAnimations.set(item.id, animation);
         animation.onfinish = () => {
-          runningAnimationsRef.current.delete(item.id);
+          runningAnimations.delete(item.id);
         };
         animation.oncancel = () => {
-          runningAnimationsRef.current.delete(item.id);
+          runningAnimations.delete(item.id);
         };
       }
     }
@@ -152,16 +158,16 @@ export function ArrayRenderer({ step }: Props) {
     prevStepRef.current = step;
 
     return () => {
-      runningAnimationsRef.current.forEach((animation) => animation.cancel());
-      runningAnimationsRef.current.clear();
+      runningAnimations.forEach((animation) => animation.cancel());
+      runningAnimations.clear();
     };
   }, [array, step, swapping]);
 
-    return (
+  return (
     <div className="relative h-full flex items-center justify-center px-4 sm:px-6">
       <Legend
         title="Legend"
-        items={LEGEND_ITEMS}
+        items={legendItems}
         ariaLabel="Array legend"
         className="absolute bottom-3 left-3 z-20"
       />
@@ -255,8 +261,7 @@ export function ArrayRenderer({ step }: Props) {
                   }}
                 />
                 <span
-                  className="relative z-10 font-mono text-xl font-bold tabular-nums select-none"
-                  style={{ color: "#0b0d12" }}
+                  className="relative z-10 font-mono text-xl font-bold tabular-nums select-none text-bar-text"
                 >
                   {item.value}
                 </span>
