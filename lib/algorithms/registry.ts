@@ -51,6 +51,11 @@ import {
   levelOrderSteps,
 } from "@/lib/algorithms/tree/levelOrder";
 import {
+  postorderMeta,
+  postorderSource,
+  postorderSteps,
+} from "@/lib/algorithms/tree/postorder";
+import {
   quickFindMeta,
   quickFindSource,
   quickFindSteps,
@@ -131,6 +136,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: levelOrderMeta,
     source: levelOrderSource,
     steps: levelOrderSteps,
+  },
+  "tree-postorder": {
+    meta: postorderMeta,
+    source: postorderSource,
+    steps: postorderSteps,
   },
 };
 
