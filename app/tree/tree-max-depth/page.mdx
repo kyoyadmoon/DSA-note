@@ -1,0 +1,95 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 03
+</div>
+
+# 最大深度 Maximum Depth of Binary Tree
+
+最大深度 = 根到最遠葉節點的路徑上的節點數。它是 tree 遞迴的「Hello World」——只要你能寫出 `1 + max(left, right)` 這一行，就掌握了**後序模式**（先算子樹、再算自己）的精髓，後面的 diameter、isBalanced 全是這個套路的延伸。
+
+<TreeAlgorithmRunner slug="tree-max-depth" initial={[50, 30, 70, 20, 40, 60, 80]} />
+
+## 為什麼會動
+
+遞迴不變量：
+
+> `maxDepth(node) = 1 + max(maxDepth(node.left), maxDepth(node.right))`
+
+Base case: `node === null` 時回傳 0（空子樹沒有深度）。
+
+這是典型的**後序**（postorder）模式——你必須先算完左子樹的深度、再算完右子樹的深度，最後才能在當前節點做 `1 + max(...)`。跟前序走訪的「先處理自己再遞迴」恰好相反：前序是 top-down，最大深度是 bottom-up。
+
+動畫裡你會看到：
+
+- 遞迴一路深入到最左邊的葉節點
+- 碰到 null 回傳 0，開始往上收集結果
+- 每個節點等左右子樹都算完，才計算自己的深度
+- 最後回到根節點，得出整棵樹的答案
+
+## 優化 / 變形
+
+### BFS 版本：用層序走訪計層數
+
+不想用遞迴？Level-order 走一層算一層，走完就是答案：
+
+```ts
+function maxDepthBFS(root: TreeNode | null): number {
+  if (!root) return 0;
+  const queue: TreeNode[] = [root];
+  let depth = 0;
+  while (queue.length > 0) {
+    const size = queue.length;
+    for (let i = 0; i < size; i++) {
+      const node = queue.shift()!;
+      if (node.left) queue.push(node.left);
+      if (node.right) queue.push(node.right);
+    }
+    depth++;
+  }
+  return depth;
+}
+```
+
+### 其他變形
+
+- **Iterative DFS with stack**：手動維護 `(node, depth)` 的 stack，每次 pop 時更新全域最大值。原理跟 BFS 版類似，只是走訪順序不同。
+- **minDepth**（LC 111）是相似問題，但 BFS 更自然——碰到第一個葉節點就可以直接回傳，不需要走完整棵樹。
+
+## 複雜度
+
+### 時間：O(n)
+
+每個節點恰好被訪問一次，每次做 `O(1)` 的工作（一次比較、一次加法）。不管樹的形狀，有 n 個節點就有 n 次呼叫：
+
+```
+T(n) = T(|L|) + T(|R|) + O(1)
+     = 每個節點貢獻 O(1)
+     = O(n)
+```
+
+### 空間：O(h)
+
+空間來自遞迴呼叫堆疊的深度，等於樹的高度 h：
+
+- **平衡樹**：h = log n，空間 `O(log n)`
+- **歪斜樹**（退化成鏈）：h = n，空間 `O(n)`
+- **BFS 版本**：空間取決於最寬的一層，最壞 `O(w)` 其中 w 是樹的最大寬度。完美二元樹的最底層有 n/2 個節點，所以 BFS 最壞也是 `O(n)`。
+
+## 跟相關題目比較
+
+| 問題 | 核心模式 | 空間 |
+|---|---|---|
+| **maxDepth** | 後序: `1 + max(L, R)` | O(h) |
+| **minDepth** | BFS 碰到 leaf 即停 | O(w) |
+| **diameter** | 後序: `leftD + rightD` at each node | O(h) |
+| **isBalanced** | 後序: `abs(L - R) <= 1` 每層驗 | O(h) |
+
+四題都是「從子樹收集資訊 → 在當前節點做決策」的後序模板。差別只在收集什麼、怎麼合併。
+
+## 常見題型
+
+- [LeetCode 104 - Maximum Depth of Binary Tree](https://leetcode.com/problems/maximum-depth-of-binary-tree/)
+- [LeetCode 111 - Minimum Depth of Binary Tree](https://leetcode.com/problems/minimum-depth-of-binary-tree/)
+- [LeetCode 110 - Balanced Binary Tree](https://leetcode.com/problems/balanced-binary-tree/)
+- [LeetCode 559 - Maximum Depth of N-ary Tree](https://leetcode.com/problems/maximum-depth-of-n-ary-tree/)

@@ -61,6 +61,11 @@ import {
   postorderSteps,
 } from "@/lib/algorithms/tree/postorder";
 import {
+  maxDepthMeta,
+  maxDepthSource,
+  maxDepthSteps,
+} from "@/lib/algorithms/tree/maxDepth";
+import {
   quickFindMeta,
   quickFindSource,
   quickFindSteps,
@@ -151,6 +156,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: inorderMeta,
     source: inorderSource,
     steps: inorderSteps,
+  },
+  "tree-max-depth": {
+    meta: maxDepthMeta,
+    source: maxDepthSource,
+    steps: maxDepthSteps,
   },
 };
 
