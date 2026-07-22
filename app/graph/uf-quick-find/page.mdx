@@ -1,0 +1,127 @@
+import { UnionFindAlgorithmRunner } from "@/components/visualizer/UnionFindAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Union Find · 01
+</div>
+
+# Quick Find
+
+## Union Find 在解什麼問題？
+
+**動態連通性**：你有 `n` 個元素（編號 `0..n-1`），它們一開始彼此獨立。隨著時間經過，會不斷收到兩種操作：
+
+- `union(p, q)` —— 把 `p` 和 `q` 所屬的群組合併
+- `find(x)` / `connected(p, q)` —— 查 `x` 屬於哪一群 / `p` 和 `q` 是不是同一群
+
+Union Find（又叫 **Disjoint Set Union, DSU**）就是一個處理這兩種操作的資料結構。每個「群」叫做一個 **component**，每個 component 會挑一個成員當代表（root），用 root 是誰來判斷兩個元素是不是同一群。
+
+具體應用：朋友圈（誰跟誰是朋友的朋友）、最小生成樹（Kruskal）、判斷加邊會不會形成環、島嶼數量、......
+
+## Quick Find 怎麼做
+
+最直觀的實作：**用一個陣列 `id[]`，`id[i]` 直接存 i 所屬 component 的代表**。同 component 的所有成員都記同一個 id。
+
+> 在我們的程式碼裡這個陣列叫 `parents[]`（沿用其他變體的命名），但對 Quick Find 來說 `parents[i]` 的語意就是「i 的 component id」，不是「i 的 parent」——這個區別到下一頁 [Quick Union](/graph/uf-quick-union) 才會真正登場。
+
+兩個 op 怎麼跑：
+
+- `find(x)` → 直接 `return parents[x]`，**O(1)**
+- `union(p, q)` → 找出 `idP = parents[p]`、`idQ = parents[q]`，然後**掃整個陣列**把所有 `parents[i] === idP` 的 i 改寫成 `idQ`，**O(n)**
+
+`find` 快得不能再快，但 `union` 每次都要全掃——這就是 Quick Find 的主要瓶頸。
+
+<UnionFindAlgorithmRunner
+  slug="uf-quick-find"
+  n={8}
+  ops={[
+    { kind: "union", p: 4, q: 3 },
+    { kind: "union", p: 3, q: 7 },
+    { kind: "union", p: 6, q: 5 },
+    { kind: "union", p: 1, q: 2 },
+    { kind: "find", x: 4 },
+    { kind: "union", p: 5, q: 0 },
+    { kind: "union", p: 7, q: 2 },
+    { kind: "find", x: 6 },
+  ]}
+/>
+
+## ops 從哪來？「下一個 union 是誰」
+
+在繼續之前，先澄清一件容易讓人困惑的事：**Union Find 本身不決定 op 順序**。它是一個被動的資料結構，照著呼叫端餵進來的序列一個一個執行：
+
+```ts
+for (const op of ops) {           // ← 順序由 ops 陣列決定，不是 UF 自己挑的
+  if (op.kind === "union") union(op.p, op.q);
+  else find(op.x);
+}
+```
+
+上面動畫裡的 `union(4,3) → union(3,7) → union(6,5) → ...` 是這頁 MDX 寫死的測試序列。按 `Random` 會生成新的隨機序列；按 `Reset` 回到原本那組。`StepPlayer` 的 Prev/Next 只是在「已經算好的 step 序列」裡前後跳，**不會改變 op 順序**。
+
+在真實題目裡，序列從輸入給定：
+
+| 場景 | ops 順序 |
+|---|---|
+| LeetCode 547 朋友圈 | 雙重迴圈掃 `M[i][j]`，每個 `1` 觸發一個 `union(i, j)` |
+| LeetCode 684 Redundant Connection | 一條一條讀 edges 陣列，每條 edge 一個 `union(u, v)` |
+| Kruskal MST | **先把 edges 按權重排序**，再依序 union（這是少數刻意排序的場景）|
+
+順序**不會**影響最終的連通性（誰跟誰連通結果都一樣），但**會**影響：
+
+- 對 Quick Find：誰當 component 代表（`union(p,q)` 永遠把 `idP` 改成 `idQ`，所以「後寫的 q 那邊」當代表）
+- 對 [Quick Union](/graph/uf-quick-union) 之後的變體：樹的形狀、樹高、find 的速度——這就是後續優化要解決的問題
+
+## 為什麼會動
+
+Quick Find 維持一個簡單的 invariant：
+
+> **`parent[i] === parent[j]` ⇔ `i` 與 `j` 在同一個 component**
+
+整個資料結構就只是一個 colour array：每個 component 拿一個整數當 colour，所有屬於它的元素都記同樣的 colour。`find(x)` 直接傳回 `parent[x]`。
+
+`union(p, q)` 的工作就是「把所有 `colour === colour[p]` 的元素重新塗成 `colour[q]`」。動畫裡你會看到一整批高亮的方塊同時改變數字——這就是為什麼 `union` 是 `O(n)` 的關鍵畫面。
+
+## 優化方向
+
+`union` 的 `O(n)` 太貴，特別是當 `union` 比 `find` 多得多的場景（例如 LeetCode 547 朋友圈）。
+
+問題出在哪？我們把「component 的代表」儲存在每個成員身上，所以一旦代表變了，就必須通知所有成員。下一頁我們改用「parent 指標」：每個成員只記住自己的 parent，find 自己順著 parent 鏈找 root。union 就只要動 root 一個指標，不用全掃。
+
+→ 下一頁：[Quick Union](/graph/uf-quick-union)
+
+## 複雜度
+
+### find：O(1)
+
+直接 `return parents[x]`，沒有迴圈。
+
+### union：O(n)
+
+迴圈跑遍整個 `parents` 陣列：
+
+```
+T_union(n) = n × O(1) = O(n)
+```
+
+對於一連串 N 個 union 操作，總時間 `Θ(N · n)`。如果 `N ≈ n`，這就是 `Θ(n²)`，在 `n = 10^5` 量級就跑不動了。
+
+### 空間：O(n)
+
+`parents` 陣列大小固定為 `n`。
+
+## 跟其他變體比較
+
+| 變體 | find | union | 優勢 | 弱點 |
+|---|---|---|---|---|
+| **Quick Find**（本頁） | O(1) | O(n) | find 超快、實作最短 | union 太慢，不適合大量 merge |
+| [Quick Union](/graph/uf-quick-union) | O(n) 最壞 | O(n) 最壞 | 不需全掃陣列 | 樹會退化成鏈 |
+| [Weighted Quick Union](/graph/uf-weighted-quick-union) | O(log n) | O(log n) | 樹高被壓在 log | 需要額外 rank 陣列 |
+| [Weighted + Path Compression](/graph/uf-path-compression) | α(n) | α(n) | 實務上 ≈ O(1) | 實作較複雜 |
+
+## 常見題型
+
+雖然真實面試和競賽不會用 Quick Find（太慢），但理解它的瓶頸是後續優化的鋪陳。如果你要直接寫題目，跳到後面的變體即可：
+
+- [LeetCode 547 · Number of Provinces](https://leetcode.com/problems/number-of-provinces/)
+- [LeetCode 200 · Number of Islands](https://leetcode.com/problems/number-of-islands/)（DFS / BFS / DSU 三法皆通）
+- [LeetCode 990 · Satisfiability of Equality Equations](https://leetcode.com/problems/satisfiability-of-equality-equations/)
