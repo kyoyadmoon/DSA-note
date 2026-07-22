@@ -31,6 +31,11 @@ import {
   mergeSortSteps,
 } from "@/lib/algorithms/sorting/mergeSort";
 import {
+  heapSortMeta,
+  heapSortSource,
+  heapSortSteps,
+} from "@/lib/algorithms/sorting/heapSort";
+import {
   bstInsertMeta,
   bstInsertSource,
   bstInsertSteps,
@@ -103,6 +108,11 @@ export const registry: Record<string, AlgorithmEntry> = {
     meta: mergeSortMeta,
     source: mergeSortSource,
     steps: mergeSortSteps,
+  },
+  "heap-sort": {
+    meta: heapSortMeta,
+    source: heapSortSource,
+    steps: heapSortSteps,
   },
 };
 
