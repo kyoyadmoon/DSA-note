@@ -28,6 +28,8 @@ export type ArrayStep = {
   sorted?: number[];
   active?: [number, number];
   pivot?: number;
+  selected?: number;
+  focusLabel?: string;
 
   phase: Phase;
   codeLine: number;

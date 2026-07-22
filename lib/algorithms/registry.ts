@@ -11,6 +11,11 @@ import {
   bubbleSortSteps,
 } from "@/lib/algorithms/sorting/bubbleSort";
 import {
+  selectionSortMeta,
+  selectionSortSource,
+  selectionSortSteps,
+} from "@/lib/algorithms/sorting/selectionSort";
+import {
   bstInsertMeta,
   bstInsertSource,
   bstInsertSteps,
@@ -63,6 +68,11 @@ export const registry: Record<string, AlgorithmEntry> = {
     meta: bubbleSortMeta,
     source: bubbleSortSource,
     steps: bubbleSortSteps,
+  },
+  "selection-sort": {
+    meta: selectionSortMeta,
+    source: selectionSortSource,
+    steps: selectionSortSteps,
   },
 };
 
