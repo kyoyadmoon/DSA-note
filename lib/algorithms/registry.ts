@@ -105,6 +105,11 @@ import {
   symmetricSource,
   symmetricSteps,
 } from "@/lib/algorithms/tree/symmetric";
+import {
+  pathSumMeta,
+  pathSumSource,
+  pathSumSteps,
+} from "@/lib/algorithms/tree/pathSum";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -201,6 +206,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: symmetricMeta,
     source: symmetricSource,
     steps: symmetricSteps,
+  },
+  "tree-path-sum": {
+    meta: pathSumMeta,
+    source: pathSumSource,
+    steps: pathSumSteps,
   },
 };
 
