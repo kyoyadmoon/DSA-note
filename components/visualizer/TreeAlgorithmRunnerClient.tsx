@@ -50,6 +50,9 @@ export function TreeAlgorithmRunnerClient({
 
   // Restore persisted prefs
   useEffect(() => {
+    // This effect intentionally hydrates React state from the external
+    // localStorage store after mount.
+    /* eslint-disable react-hooks/set-state-in-effect */
     try {
       const savedLayout = window.localStorage.getItem(LAYOUT_KEY);
       if (savedLayout === "horizontal" || savedLayout === "vertical") {
@@ -68,6 +71,7 @@ export function TreeAlgorithmRunnerClient({
     } catch {
       // ignore
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   useEffect(() => {
