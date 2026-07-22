@@ -18,7 +18,16 @@ const SWAP_DURATION_MS = 820;
 const SWAP_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 export function ArrayRenderer({ step }: Props) {
-  const { array, comparing, swapping, sorted, pivot, selected, pointers } = step;
+  const {
+    array,
+    comparing,
+    swapping,
+    sorted,
+    active,
+    pivot,
+    selected,
+    pointers,
+  } = step;
   const n = array.length;
   const itemRefs = useRef(new Map<string, HTMLDivElement>());
   const prevCentersRef = useRef(new Map<string, number>());
@@ -30,6 +39,8 @@ export function ArrayRenderer({ step }: Props) {
   const isSwapping = (i: number) =>
     swapping?.[0] === i || swapping?.[1] === i;
   const isSorted = (i: number) => sorted?.includes(i) ?? false;
+  const isActive = (i: number) =>
+    active === undefined || (i >= active[0] && i < active[1]);
   const isPivot = (i: number) => pivot === i;
   const isSelected = (i: number) => selected === i;
 
@@ -232,6 +243,7 @@ export function ArrayRenderer({ step }: Props) {
             const color = getColor(i);
             const scale = getScale(i);
             const itemSwapping = isSwapping(i);
+            const opacity = isActive(i) || isSorted(i) ? 1 : 0.38;
             return (
               <div
                 key={item.id}
@@ -242,11 +254,12 @@ export function ArrayRenderer({ step }: Props) {
                   }
                   itemRefs.current.delete(item.id);
                 }}
-                className="relative flex-1 aspect-square rounded-xl shadow-lg flex items-center justify-center transition-[background-color,transform] duration-200 ease-out"
+                className="relative flex-1 aspect-square rounded-xl shadow-lg flex items-center justify-center transition-[background-color,transform,opacity] duration-200 ease-out"
                 style={{
                   maxWidth: MAX_SQUARE,
                   minWidth: 0,
                   backgroundColor: color,
+                  opacity,
                   transform: itemSwapping
                     ? undefined
                     : `translate3d(0, ${lift}px, 0) scale(${scale})`,
