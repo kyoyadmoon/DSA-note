@@ -1,0 +1,96 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 03
+</div>
+
+# 中序走訪 Inorder Traversal
+
+中序走訪的規則只有一句話：**左 → 根 → 右**。這聽起來只是把 `push(root.value)` 放在遞迴的中間，但在二元搜尋樹（BST）上它會產生一個非常重要的結果：**輸出序列天然就是由小到大排序好的結果**。
+
+<TreeAlgorithmRunner slug="tree-inorder" initial={[50, 30, 70, 20, 40, 35, 60, 80]} />
+
+## 為什麼會動
+
+中序走訪的遞迴不變量可以直接寫成：
+
+> `inorder(node) = inorder(node.left) ++ [node.value] ++ inorder(node.right)`
+
+也就是說，每個節點都把自己的答案拆成三段：先交出左子樹的完整結果，再把自己放進去，最後接上右子樹的完整結果。呼叫堆疊只是幫你暫存「我左邊做到哪裡、等等還要回來處理誰」。
+
+如果這棵樹是 BST，事情就更漂亮了。因為 BST 保證：
+
+- 左子樹的每個值都 `< node.value`
+- 右子樹的每個值都 `>= node.value`
+
+再加上左、右子樹自己也各自遵守同樣的規則，就能用遞移性推出：**整個中序結果一定是單調遞增**。所以很多 BST 題目其實不是在「發明新演算法」，而是在利用這個排序性質。
+
+## 優化 / 變形
+
+遞迴版本最直觀；如果你不想依賴呼叫堆疊，也可以手動維護一個 stack：
+
+```ts
+function inorderIterative(root: TreeNode | null): number[] {
+  const out: number[] = [];
+  const stack: TreeNode[] = [];
+  let current = root;
+
+  while (current !== null || stack.length > 0) {
+    while (current !== null) {
+      stack.push(current);
+      current = current.left;
+    }
+
+    const node = stack.pop()!;
+    out.push(node.value);
+    current = node.right;
+  }
+
+  return out;
+}
+```
+
+這段程式其實就是把「一直往左鑽到底，再回來處理根，最後改走右邊」的遞迴流程手動展開。再往前一步，還有 **Morris 中序走訪** 可以用暫時改寫右指標的穿線技巧，把額外空間壓到 `O(1)`。
+
+## 複雜度
+
+### 時間：T(n) = 1 + T(|L|) + T(|R|) → O(n)
+
+每個節點都只會被真正輸出一次，而且除了遞迴呼叫之外，只做固定次數的操作。把遞迴式展開：
+
+```
+T(n) = 1 + T(|L|) + T(|R|)
+     = 1 + 每個節點各自貢獻一次常數工作
+     = n
+```
+
+所以不管樹是平衡還是歪斜，只要總共有 `n` 個節點，中序走訪的時間就是 `O(n)`。
+
+### 空間：O(h)
+
+額外空間來自遞迴深度，也就是樹高 `h`：
+
+- **平衡樹**：`h ≈ log₂(n)`，所以空間 `O(log n)`
+- **歪斜樹**：`h = n`，退化成鏈時空間 `O(n)`
+
+如果改用顯式 stack 的迭代版本，最壞情況上限仍然是 `O(h)`；只有 Morris traversal 例外，可以做到 `O(1)` 額外空間。
+
+## 跟其他 traversal 比較
+
+| 順序 | 訪問次序 | 典型應用 |
+|---|---|---|
+| 前序 (Preorder) | 根 → 左 → 右 | 複製樹、序列化、輸出前綴式 |
+| **中序 (Inorder)** | **左 → 根 → 右** | **BST 取得排序結果、驗證 BST、找第 k 小** |
+| 後序 (Postorder) | 左 → 右 → 根 | 刪除整棵樹、先算子樹再算自己 |
+| 層序 (Level-order) | 一層一層由上而下 | BFS、level sum、最大寬度 |
+
+同樣是深度優先走訪，差別只在「根節點到底什麼時候輸出」：前序是最早輸出，中序夾在左右子樹中間，後序則等到兩邊都完成才輸出。
+
+## 常見題型
+
+中序走訪最常出現在 BST 題目裡，因為它直接暴露了 BST 的排序性：
+
+- [LeetCode 94 · Binary Tree Inorder Traversal](https://leetcode.com/problems/binary-tree-inorder-traversal/)
+- [LeetCode 98 · Validate Binary Search Tree](https://leetcode.com/problems/validate-binary-search-tree/)（中序單調遞增 = 合法 BST）
+- [LeetCode 230 · Kth Smallest Element in a BST](https://leetcode.com/problems/kth-smallest-element-in-a-bst/)
+- [LeetCode 99 · Recover Binary Search Tree](https://leetcode.com/problems/recover-binary-search-tree/)（bonus：中序序列裡找逆序對）
