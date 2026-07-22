@@ -13,6 +13,7 @@ const TREE_LINKS = [
   { href: "/tree/tree-max-depth", label: "最大深度" },
   { href: "/tree/tree-diameter", label: "二元樹直徑" },
   { href: "/tree/tree-invert", label: "翻轉樹" },
+  { href: "/tree/tree-symmetric", label: "對稱樹" },
 ] as const;
 
 const SORTING_LINKS = [
