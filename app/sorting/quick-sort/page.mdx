@@ -1,0 +1,90 @@
+import { AlgorithmRunner } from "@/components/visualizer/AlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Sorting · 04
+</div>
+
+# Quick Sort
+
+Quick sort 選一個元素作為 **pivot**，把其餘元素分成「小於 pivot」與「大於或等於 pivot」兩區，再遞迴處理左右子區間。每次 partition 結束後，pivot 已經位於最終排序位置，不會再被移動。
+
+這頁採用 Lomuto partition：選子區間最右端 `a[hi]` 作 pivot，`j` 由左向右掃描，`i` 指向小於 pivot 區域的下一個空位。
+
+<AlgorithmRunner slug="quick-sort" initial={[7, 3, 8, 2, 6, 1]} />
+
+## Partition invariant
+
+掃描 `a[lo..hi-1]` 的過程中，陣列維持四個區域：
+
+- `a[lo..i-1]`：已確認小於 pivot
+- `a[i..j-1]`：已確認大於或等於 pivot
+- `a[j..hi-1]`：尚未掃描
+- `a[hi]`：pivot
+
+若 `a[j] < pivot`，就把它與 `a[i]` 交換並令 `i++`；否則只移動 `j`。掃描完成後，把 pivot 與 `a[i]` 交換，便得到：
+
+```
+a[lo..i-1] < a[i] <= a[i+1..hi]
+                 ^ pivot
+```
+
+因此 pivot 的最終排名已確定。左右區間可各自排序，彼此不會再跨過 pivot。
+
+## 複雜度取決於分割是否平衡
+
+一次 partition 會線性掃描長度為 `n` 的子區間，差異在於遞迴樹的高度。
+
+| 分割結果 | 遞迴高度 | 總時間 |
+|---|---:|---:|
+| 每次接近對半 | O(log n) | O(n log n) |
+| 平均情況 | O(log n) 量級 | O(n log n) |
+| 每次分成 0 與 n - 1 | O(n) | O(n²) |
+
+這個版本固定選最右元素。已排序或反向排序輸入會讓 pivot 每次都是極值，產生最不平衡的分割；比較總數為 `n(n - 1) / 2`。
+
+實務上常用隨機 pivot、median-of-three，或先打亂輸入，降低持續遇到極端分割的機率。這些策略改善的是效能分布，不影響 partition 的正確性。
+
+## 空間
+
+Partition 本身只用固定數量的索引與暫存值，所以資料重排是 in-place；但遞迴呼叫仍需要 stack：
+
+- 平衡／平均分割：`O(log n)`
+- 最壞分割：`O(n)`
+
+若每次先遞迴較小的一側，再用迴圈處理較大側，可把額外 stack 控制在 `O(log n)`。
+
+## 為什麼不穩定
+
+Partition 會做長距離交換，相等元素可能互相跨越。例如替三個相等值加上身份標記：
+
+```
+[2a, 2b, 2c]
+```
+
+第一輪以 `2c` 為 pivot。因為條件使用嚴格的 `< pivot`，前兩個 `2` 都留在右側，最後 `2c` 會和 `2a` 交換；完整排序結果的身份順序是 `[2c, 2a, 2b]`，不同於原本的 `[2a, 2b, 2c]`，因此這個 in-place Quick sort 不穩定。
+
+## 重複值很多時
+
+目前條件使用 `< pivot`，所以所有等於 pivot 的元素都進入右側。若資料只有少數不同值，分割可能長期失衡。常見改良是 **three-way partition**，一次切成：
+
+```
+< pivot | = pivot | > pivot
+```
+
+等於 pivot 的整段不必再遞迴，重複值密集時能避免大量無效工作。
+
+## 跟 Merge Sort 比較
+
+| 特性 | Quick Sort | [Merge Sort](/sorting/merge-sort) |
+|---|---|---|
+| 平均時間 | O(n log n) | O(n log n) |
+| 最壞時間 | O(n²) | O(n log n) |
+| 陣列額外空間 | 低，另有遞迴 stack | O(n) |
+| 穩定 | 否 | 是 |
+| 核心操作 | 原地 partition | 合併兩個已排序區間 |
+
+## 常見題型
+
+- [LeetCode 75 · Sort Colors](https://leetcode.com/problems/sort-colors/)：three-way partition 的典型變形
+- [LeetCode 215 · Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/)：Quickselect 只遞迴包含第 k 個元素的一側
+- [LeetCode 912 · Sort an Array](https://leetcode.com/problems/sort-an-array/)：比較不同 O(n log n) 排序的限制

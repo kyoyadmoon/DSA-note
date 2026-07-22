@@ -21,6 +21,11 @@ import {
   insertionSortSteps,
 } from "@/lib/algorithms/sorting/insertionSort";
 import {
+  quickSortMeta,
+  quickSortSource,
+  quickSortSteps,
+} from "@/lib/algorithms/sorting/quickSort";
+import {
   bstInsertMeta,
   bstInsertSource,
   bstInsertSteps,
@@ -83,6 +88,11 @@ export const registry: Record<string, AlgorithmEntry> = {
     meta: insertionSortMeta,
     source: insertionSortSource,
     steps: insertionSortSteps,
+  },
+  "quick-sort": {
+    meta: quickSortMeta,
+    source: quickSortSource,
+    steps: quickSortSteps,
   },
 };
 
