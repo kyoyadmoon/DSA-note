@@ -15,7 +15,10 @@ const SWAP_LIFT = 32;
 const COMPARE_LIFT = -6;
 const SWAP_SCALE = 1.12;
 const SWAP_DURATION_MS = 820;
+const MERGE_DURATION_MS = 680;
 const SWAP_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
+const MERGE_RANGE_COLOR =
+  "color-mix(in oklab, var(--color-bar-idle) 65%, var(--color-accent))";
 
 export function ArrayRenderer({ step }: Props) {
   const {
@@ -45,7 +48,13 @@ export function ArrayRenderer({ step }: Props) {
   const isSelected = (i: number) => selected === i;
 
   const legendItems = [
-    { label: "未排序", color: "var(--color-bar-idle)" },
+    {
+      label: step.phase === "merge" ? "合併區間" : "未排序",
+      color:
+        step.phase === "merge"
+          ? MERGE_RANGE_COLOR
+          : "var(--color-bar-idle)",
+    },
     { label: "比較中", color: "var(--color-bar-compare)" },
     { label: "交換中", color: "var(--color-bar-swap)" },
     {
@@ -61,6 +70,7 @@ export function ArrayRenderer({ step }: Props) {
     if (isSelected(i)) return "var(--color-bar-pivot)";
     if (isPivot(i)) return "var(--color-bar-pivot)";
     if (isSorted(i)) return "var(--color-bar-sorted)";
+    if (step.phase === "merge" && isActive(i)) return MERGE_RANGE_COLOR;
     return "var(--color-bar-idle)";
   };
 
@@ -150,6 +160,50 @@ export function ArrayRenderer({ step }: Props) {
           ],
           {
             duration: SWAP_DURATION_MS,
+            easing: SWAP_EASING,
+            fill: "both",
+          },
+        );
+
+        runningAnimations.set(item.id, animation);
+        animation.onfinish = () => {
+          runningAnimations.delete(item.id);
+        };
+        animation.oncancel = () => {
+          runningAnimations.delete(item.id);
+        };
+      }
+    } else if (step.phase === "merge" && prevStep) {
+      for (const item of array) {
+        const node = itemRefs.current.get(item.id);
+        const prevCenter = prevCenters.get(item.id);
+        const currentCenter = currentCenters.get(item.id);
+        if (!node || prevCenter === undefined || currentCenter === undefined) {
+          continue;
+        }
+
+        const deltaX = prevCenter - currentCenter;
+        if (Math.abs(deltaX) < 0.5) continue;
+
+        const previousIndex = prevStep.array.findIndex(
+          (prevItem) => prevItem.id === item.id,
+        );
+        const previousLift =
+          previousIndex >= 0 &&
+          (prevStep.comparing?.[0] === previousIndex ||
+            prevStep.comparing?.[1] === previousIndex)
+            ? COMPARE_LIFT
+            : 0;
+
+        const animation = node.animate(
+          [
+            {
+              transform: `translate3d(${deltaX}px, ${previousLift}px, 0) scale(1)`,
+            },
+            { transform: "translate3d(0px, 0px, 0) scale(1)" },
+          ],
+          {
+            duration: MERGE_DURATION_MS,
             easing: SWAP_EASING,
             fill: "both",
           },
