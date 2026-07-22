@@ -22,7 +22,7 @@ export default function Home() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <TopicCard
-            href="/sorting/bubble-sort"
+            href="/sorting"
             eyebrow="Sorting · 6 algorithms"
             title="排序演算法"
             description="從 bubble sort 到 heap sort，六個經典排序各自有專屬的逐步動畫。"

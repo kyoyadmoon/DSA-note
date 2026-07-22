@@ -10,6 +10,7 @@ const TREE_LINKS = [
 ] as const;
 
 const SORTING_LINKS = [
+  { href: "/sorting", label: "Sorting overview" },
   { href: "/sorting/bubble-sort", label: "Bubble sort" },
   { href: "/sorting/selection-sort", label: "Selection sort" },
   { href: "/sorting/insertion-sort", label: "Insertion sort" },

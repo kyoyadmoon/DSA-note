@@ -1,0 +1,58 @@
+import { SortingComparison } from "@/components/visualizer/SortingComparison";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Sorting · Overview
+</div>
+
+# 排序演算法總覽
+
+排序不只是把數字由小排到大；不同演算法在時間上界、額外空間、穩定性與資料移動方式之間做出不同取捨。以下六種演算法涵蓋相鄰交換、選擇、增量插入、分治、partition 與 heap 等核心思路。
+
+<SortingComparison />
+
+同步動畫使用同一組輸入，並把共同的 `0–100%` 相對進度映射到每個演算法自己的步驟數。它適合觀察整體行為與資料移動模式；由於各演算法一步的工作量不同，畫面中的同一百分比不代表已執行相同數量的比較或交換。點選卡片標題可進入逐步程式碼與旁白頁面。
+
+## 六種演算法比較
+
+| 演算法 | 最好 | 平均 | 最壞 | 額外空間 | 穩定 | In-place |
+|---|---:|---:|---:|---:|:---:|:---:|
+| [Bubble Sort](/sorting/bubble-sort) | O(n) | O(n²) | O(n²) | O(1) | 是 | 是 |
+| [Selection Sort](/sorting/selection-sort) | O(n²) | O(n²) | O(n²) | O(1) | 否 | 是 |
+| [Insertion Sort](/sorting/insertion-sort) | O(n) | O(n²) | O(n²) | O(1) | 是 | 是 |
+| [Quick Sort](/sorting/quick-sort) | O(n log n) | O(n log n) | O(n²) | 平均 O(log n) stack | 否 | 是¹ |
+| [Merge Sort](/sorting/merge-sort) | O(n log n) | O(n log n) | O(n log n) | O(n) | 是 | 否 |
+| [Heap Sort](/sorting/heap-sort) | O(n log n) | O(n log n) | O(n log n) | O(1) | 否 | 是 |
+
+¹ 本站的 Quick sort partition 在原陣列內完成；遞迴呼叫仍使用 stack，平均 `O(log n)`、最壞 `O(n)`。
+
+## 如何選擇
+
+### 資料量小或接近排序
+
+[Insertion Sort](/sorting/insertion-sort) 會隨逆序對減少而加速，已排序輸入是 `O(n)`，通常是小型或近乎排序陣列的合理基礎方案。Bubble sort 也能提早結束，但交換與掃描模式通常沒有額外優勢。
+
+### 需要穩定與確定的 O(n log n)
+
+[Merge Sort](/sorting/merge-sort) 保留相等元素順序，而且最壞時間仍是 `O(n log n)`；代價是陣列版本需要 `O(n)` 輔助空間。
+
+### 希望原地重排且重視平均效能
+
+[Quick Sort](/sorting/quick-sort) 的 partition 具有良好的陣列資料區域性，平均為 `O(n log n)`。必須處理 pivot 選擇與最壞 `O(n²)`；實務實作通常加入隨機化、three-way partition 或深度上限。
+
+### 額外空間固定且需要最壞 O(n log n)
+
+[Heap Sort](/sorting/heap-sort) 使用 `O(1)` 額外空間，並保持 `O(n log n)` 最壞上界；但它不穩定，且索引跳躍使資料區域性通常不如連續掃描的演算法。
+
+### 教學與特定成本模型
+
+- [Bubble Sort](/sorting/bubble-sort)：理解相鄰逆序與 early exit
+- [Selection Sort](/sorting/selection-sort)：每輪最多一次交換，適合比較「比較成本」與「寫入成本」的差別
+- [Insertion Sort](/sorting/insertion-sort)：理解已排序前綴、逆序對與自適應排序
+
+## 三個判斷維度
+
+1. **輸入特性**：資料量、是否近乎排序、重複值比例，以及最壞情況是否可能被刻意觸發
+2. **資源限制**：能否配置 `O(n)` 緩衝區、是否允許遞迴，以及寫入或比較哪一種操作更昂貴
+3. **輸出要求**：是否必須穩定、是否需要最壞時間保證，或其實只需要 Top K 而不必完整排序
+
+複雜度表提供的是漸進界線，不包含常數、cache 行為與執行環境。實際選擇仍應以資料分布、語言標準函式庫的實作與量測結果為準。
