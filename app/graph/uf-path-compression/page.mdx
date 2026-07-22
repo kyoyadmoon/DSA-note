@@ -1,0 +1,103 @@
+import { UnionFindAlgorithmRunner } from "@/components/visualizer/UnionFindAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Union Find · 04
+</div>
+
+# Weighted + Path Compression
+
+> 沒讀過 [Quick Find](/graph/uf-quick-find#union-find-在解什麼問題) 的話，先去看那頁的開頭把 Union Find 在解什麼問題、`union` / `find` 兩個 op 的定義建立起來。本頁假設你已經讀過 [Weighted Quick Union](/graph/uf-weighted-quick-union)。
+
+Union Find 的最終形態：**Weighted Quick Union 加上 Path Compression**。每次 `find` 走訪到 root 之後，順手把整條路徑上的所有節點 parent 直接設為 root——這條路徑「壓平」了，下次再 find 只要一跳。
+
+攤銷複雜度降到 `O(α(n))`，其中 α 是 inverse Ackermann 函數。對任何實際宇宙裡的 n（包含可觀測宇宙的原子數），`α(n) < 5`，所以實務上等同於常數時間。
+
+<UnionFindAlgorithmRunner
+  slug="uf-path-compression"
+  n={8}
+  showRanks
+  ops={[
+    { kind: "union", p: 0, q: 1 },
+    { kind: "union", p: 2, q: 3 },
+    { kind: "union", p: 4, q: 5 },
+    { kind: "union", p: 6, q: 7 },
+    { kind: "union", p: 0, q: 2 },
+    { kind: "union", p: 4, q: 6 },
+    { kind: "union", p: 0, q: 4 },
+    { kind: "find", x: 7 },
+    { kind: "find", x: 5 },
+  ]}
+/>
+
+## ops 順序仍影響單步成本，但不影響攤銷保證
+
+跟 [Quick Find](/graph/uf-quick-find#ops-從哪來下一個-union-是誰) 一樣，這頁的 ops 序列是 MDX 寫死的、Union Find 自己不挑順序。Path compression 進一步降低 [Weighted Quick Union](/graph/uf-weighted-quick-union#ops-順序在這裡被吸收掉了) 的走訪成本：
+
+- **Weighted 保證樹高 ≤ log n**——不論順序，find 最壞 `O(log n)`
+- **Weighted + Path Compression 保證攤銷 α(n)**——就算呼叫端故意餵會讓樹長高的順序，第一次 find 走完後路徑就被壓平，之後再 find 同個區域都是常數時間
+
+ops 順序仍會改變樹形，也會決定哪一次 find 需要走較長路徑；保證的是任意操作序列的**總成本**都有 inverse-Ackermann 級的攤銷上界。動畫裡的 `find(7)` 跟 `find(5)` 兩個 op 刻意放在最後，用來顯示 path compression 觸發後路徑變扁。
+
+## 為什麼會動
+
+Path Compression 的核心一行：
+
+```ts
+for (const y of path) parents[y] = root;
+```
+
+`find` 在走到 root 之前先把路徑上的所有節點記下來（`path`），到 root 之後一次把它們的 parent 都改寫成 root。這樣：
+
+1. 樹被攤平（depth 永遠不會增加）
+2. 之後再 find 路徑上任何節點都是一跳
+
+注意 path compression **不會影響 union by rank 的正確性**。Rank 是「曾經達到過的最大樹高」，path compression 只會讓樹變更扁，不會讓 rank 失效——我們用 rank 的「上界」性質而非「準確值」性質。
+
+動畫裡會看到一個獨特的階段：**compressing**。這時候你會看到走訪過的節點同時把邊重新指向 root，整條路徑瞬間扁平化。之後任何對這些節點的 find 都只走一步。
+
+## 複雜度：α(n) 攤銷
+
+完整證明超出本筆記範圍，標準參考是 Tarjan 1975 的論文 *Efficiency of a Good But Not Linear Set Union Algorithm*。直觀記憶：
+
+> 對 N 次操作，總時間是 `O((N + n) · α(n))`，其中 α 是 inverse Ackermann。
+
+α(n) 的成長極慢。不同教材採用的 Ackermann 函數與反函數定義可能有常數位移，所以小輸入的精確數值表不一定一致；共同結論是，對任何能實際儲存的 n，α(n) 都不超過 4 或 5。工程上通常把這個攤銷成本視為近似常數。
+
+### 空間：O(n)
+
+`parents` 與 `ranks` 各 n 格，沒有額外結構。
+
+## 完整變體比較
+
+| 變體 | find | union | 何時用 |
+|---|---|---|---|
+| [Quick Find](/graph/uf-quick-find) | O(1) | O(n) | 教學用，理解 union-find 動機 |
+| [Quick Union](/graph/uf-quick-union) | O(n) | O(n) | 教學用，看到「樹退化」的痛 |
+| [Weighted](/graph/uf-weighted-quick-union) | O(log n) | O(log n) | 大多數題目夠用 |
+| **Weighted + Path Compression**（本頁） | α(n) | α(n) | 競賽 / 大規模 / 想最快就寫這個 |
+
+實務 tip：**只做 path compression、不做 union by rank** 也能達到 `O(log n)` 攤銷，許多題解就是寫得很短：
+
+```ts
+function find(parents, x) {
+  if (parents[x] !== x) parents[x] = find(parents, parents[x]);
+  return parents[x];
+}
+```
+
+如果還要更快、且 union 次數遠多於 find，再加 union by rank/size。
+
+## 常見題型
+
+到了這個版本，Union Find 幾乎能解所有「動態連通性」題目：
+
+- [LeetCode 547 · Number of Provinces](https://leetcode.com/problems/number-of-provinces/)
+- [LeetCode 684 · Redundant Connection](https://leetcode.com/problems/redundant-connection/)
+- [LeetCode 685 · Redundant Connection II](https://leetcode.com/problems/redundant-connection-ii/)
+- [LeetCode 721 · Accounts Merge](https://leetcode.com/problems/accounts-merge/)
+- [LeetCode 990 · Satisfiability of Equality Equations](https://leetcode.com/problems/satisfiability-of-equality-equations/)
+- [LeetCode 1319 · Number of Operations to Make Network Connected](https://leetcode.com/problems/number-of-operations-to-make-network-connected/)
+- [LeetCode 1584 · Min Cost to Connect All Points](https://leetcode.com/problems/min-cost-to-connect-all-points/)
+- [LeetCode 959 · Regions Cut By Slashes](https://leetcode.com/problems/regions-cut-by-slashes/)
+- [LeetCode 261 · Graph Valid Tree](https://leetcode.com/problems/graph-valid-tree/)
+- [LeetCode 200 · Number of Islands](https://leetcode.com/problems/number-of-islands/)

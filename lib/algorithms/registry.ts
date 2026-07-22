@@ -40,6 +40,11 @@ import {
   weightedQuickUnionSource,
   weightedQuickUnionSteps,
 } from "@/lib/algorithms/graph/union-find/weightedQuickUnion";
+import {
+  pathCompressionMeta,
+  pathCompressionSource,
+  pathCompressionSteps,
+} from "@/lib/algorithms/graph/union-find/pathCompression";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -112,6 +117,11 @@ export const unionFindRegistry: Record<string, UnionFindAlgorithmEntry> = {
     meta: weightedQuickUnionMeta,
     source: weightedQuickUnionSource,
     steps: weightedQuickUnionSteps,
+  },
+  "uf-path-compression": {
+    meta: pathCompressionMeta,
+    source: pathCompressionSource,
+    steps: pathCompressionSteps,
   },
 };
 
