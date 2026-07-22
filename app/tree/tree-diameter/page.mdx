@@ -1,0 +1,95 @@
+import { TreeAlgorithmRunner } from "@/components/visualizer/TreeAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Tree · 03
+</div>
+
+# 二元樹直徑 Diameter of Binary Tree
+
+直徑就是**樹中任意兩個節點之間最長路徑的邊數**，它**不一定經過根節點**，而且是經典的「後序回傳深度、同時在全域追蹤最佳答案」範例。
+
+<TreeAlgorithmRunner slug="tree-diameter" initial={[50, 30, 70, 20, 40, 60, 80]} />
+
+## 為什麼會動
+
+直徑題最重要的觀察是：**任何一條最長路徑，都有一個最高點**。一旦你固定某個節點當作最高點，這條路徑的長度就等於：
+
+> **左子樹最大深度 + 右子樹最大深度**
+
+這也是為什麼這題天然適合後序走訪。因為只有在左右子樹都已經算完之後，你才知道「穿過這個節點」的候選直徑是多少；也只有後序，才能在每個節點用 `O(1)` 把答案接起來。
+
+動畫裡你會看到：
+
+- **藍色的節點**是目前正在計算的節點，正在等待左右子樹回傳深度
+- **紫色的節點**是遞迴路徑上的祖先節點，它們保留在 call stack 上等待子問題完成
+- **灰色背景的節點**代表該節點的左右子樹都已處理完，深度已經回傳，可以安全視為 solved
+- **高亮的邊**顯示這一步是從哪個父節點往下遞迴
+
+整個 invariant 是：
+
+- `depth(node)` 回傳的是「以 `node` 為根的子樹最大深度」
+- `maxDiam` 永遠大於等於目前所有已處理節點的最佳直徑
+
+所以每個節點只要做兩件事：
+
+1. 先拿到 `leftDepth` 與 `rightDepth`
+2. 用 `leftDepth + rightDepth` 嘗試更新全域 `maxDiam`
+
+## 優化 / 變形
+
+這個模板可以直接延伸成幾個常見變形：
+
+- **找出實際路徑節點**：除了回傳深度，也一起回傳「對應的最深路徑」，更新 `maxDiam` 時同步保存 path
+- **帶權邊版本**：把 `1 + max(left, right)` 改成 `weight + max(...)`，候選值從 `left + right` 改成左右帶權長度總和
+- **N-ary tree**：每個節點不只看左右兩個子節點，而是取所有子樹深度中的前 2 大來組合候選直徑
+
+這些變形的核心都沒變：**子問題先回傳局部可組合資訊，父節點用 `O(1)` 或 `O(k)` 做合併，外面再用全域變數記住最佳答案。**
+
+## 複雜度
+
+### 時間：T(n) = T(|L|) + T(|R|) + O(1) → O(n)
+
+每個節點恰好被遞迴拜訪一次，而且在該節點做的工作只有常數件：
+
+```text
+1. 取回 leftDepth
+2. 取回 rightDepth
+3. 算 candidate = leftDepth + rightDepth
+4. 更新 maxDiam
+5. 回傳 1 + max(leftDepth, rightDepth)
+```
+
+所以遞迴式就是：
+
+```text
+T(n) = T(|L|) + T(|R|) + O(1)
+```
+
+把整棵樹展開後，每個節點都只貢獻一次常數成本，總時間就是 `O(n)`。
+
+### 空間：O(h)
+
+額外空間來自遞迴呼叫堆疊，深度等於樹高 `h`：
+
+- **平衡樹**：`h ≈ log₂(n)`，所以空間是 `O(log n)`
+- **歪斜樹**：`h = n`，所以最壞空間是 `O(n)`
+
+演算法本身沒有額外開陣列或 hash map；真正佔空間的是遞迴堆疊，而不是 `maxDiam` 這個單一變數。
+
+## 跟其他 tree DP 題目比較
+
+| 題目 | 後序回傳值 | 全域追蹤 | 關鍵差異 |
+|---|---|---|---|
+| **Maximum Depth** | `depth(node)` | 不需要 | 只回傳單一路徑深度，不組合左右答案 |
+| **Diameter of Binary Tree** | `depth(node)` | `maxDiam` | 在每個節點用 `leftDepth + rightDepth` 嘗試更新答案 |
+| **Longest Univalue Path** | `sameValueDepth(node)` | `maxPath` | 只能把值相同的邊接起來，組合前要先檢查 `node.val` 是否匹配 |
+| **Path Sum III** | 不是單純 depth | 常見做法是 prefix sum map | 重點不是「經過某節點的最長路徑」，而是統計和為目標值的路徑數量 |
+
+三者都會寫成 DFS，但**回傳值代表什麼**完全不同；把回傳值定義錯，整個轉移式就會跟著錯。
+
+## 常見題型
+
+- [LeetCode 543 · Diameter of Binary Tree](https://leetcode.com/problems/diameter-of-binary-tree/)
+- [LeetCode 124 · Binary Tree Maximum Path Sum](https://leetcode.com/problems/binary-tree-maximum-path-sum/)
+- [LeetCode 687 · Longest Univalue Path](https://leetcode.com/problems/longest-univalue-path/)
+- [LeetCode 1245 · Tree Diameter](https://leetcode.com/problems/tree-diameter/)
