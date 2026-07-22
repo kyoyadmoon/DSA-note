@@ -6,6 +6,7 @@ export type Phase =
   | "insert"
   | "partition"
   | "merge"
+  | "heapify"
   | "done";
 
 export type ArrayItem = {
