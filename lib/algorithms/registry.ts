@@ -46,6 +46,11 @@ import {
   inorderSteps,
 } from "@/lib/algorithms/tree/inorder";
 import {
+  lcaMeta,
+  lcaSource,
+  lcaSteps,
+} from "@/lib/algorithms/tree/lca";
+import {
   preorderMeta,
   preorderSource,
   preorderSteps,
@@ -136,6 +141,11 @@ export const treeRegistry: Record<string, TreeAlgorithmEntry> = {
     meta: bstInsertMeta,
     source: bstInsertSource,
     steps: bstInsertSteps,
+  },
+  "tree-lca": {
+    meta: lcaMeta,
+    source: lcaSource,
+    steps: lcaSteps,
   },
   "tree-preorder": {
     meta: preorderMeta,
