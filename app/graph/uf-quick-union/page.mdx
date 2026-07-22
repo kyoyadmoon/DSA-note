@@ -1,0 +1,93 @@
+import { UnionFindAlgorithmRunner } from "@/components/visualizer/UnionFindAlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Union Find · 02
+</div>
+
+# Quick Union
+
+> 沒讀過 [Quick Find](/graph/uf-quick-find#union-find-在解什麼問題) 的話，先去看那頁的開頭把 Union Find 在解什麼問題、`union` / `find` 兩個 op 的定義先建立起來。
+
+Quick Union 換一個角度：**每個元素只記住自己的 parent**，root 自指（`parent[root] === root`）。`find(x)` 順著 parent 鏈一路往上走，直到自指的節點。`union(p, q)` 只要把其中一棵樹的 root 接到另一棵 root 底下——一次指標賦值，不用全掃。
+
+<UnionFindAlgorithmRunner
+  slug="uf-quick-union"
+  n={8}
+  ops={[
+    { kind: "union", p: 4, q: 3 },
+    { kind: "union", p: 3, q: 5 },
+    { kind: "union", p: 6, q: 5 },
+    { kind: "union", p: 7, q: 2 },
+    { kind: "union", p: 1, q: 0 },
+    { kind: "union", p: 0, q: 6 },
+    { kind: "find", x: 4 },
+  ]}
+/>
+
+## ops 順序在這裡開始有影響
+
+跟 [Quick Find](/graph/uf-quick-find#ops-從哪來下一個-union-是誰) 一樣，這個 ops 序列是 MDX 寫死的、Union Find 自己不挑順序。但在 Quick Union 起，**順序會直接影響樹的形狀**——進而影響 find 的速度：
+
+- 餵 `union(0,1) → union(1,2) → union(2,3) → ...`：每次都把舊 root 接到新元素底下，最終會長出一條長度 `n` 的鏈，`find(0)` 要走 `n` 步
+- 餵 `union(0,1) union(2,3) → union(0,2)`：兩棵小樹合併成一棵高度 2 的平衡樹
+
+這是 [Weighted Quick Union](/graph/uf-weighted-quick-union) 要解決的問題：不論呼叫端順序多惡意，都把樹高壓在 `O(log n)`。在 Quick Union 這頁，先記住「順序不同 → 樹形不同 → find 速度不同」這件事即可。
+
+## 為什麼會動
+
+Quick Union 的 invariant：
+
+> **`i` 與 `j` 在同一個 component ⇔ 從 `i` 與 `j` 走 parent 鏈會到同一個 root**
+
+這次 `parent[i]` 真的代表「i 的 parent」（而不是 Quick Find 裡的「component 代表」）。整個 `parents` 陣列其實在編碼一座**森林**——每個 component 是一棵以 root 為頂的樹。
+
+動畫裡的「森林視圖」就是直接把 `parents` 解讀成樹畫出來：
+
+- **紫色節點**是 root（`parent[i] === i`）
+- **天藍色高亮**是當前 op 對應的 input 元素
+- **橘色路徑**是 find 走訪經過的節點與邊
+
+`find` 為什麼一定會收斂？因為 `union` 只會把一棵樹的 root 接到另一棵樹的 root，不會在同一棵樹內新增 parent 邊，因此森林中不會形成環。沿 parent 鏈走有限步後一定會抵達自指的 root。節點 index 可能增加也可能減少，收斂與編號順序無關。
+
+## 優化方向
+
+Quick Union 解決了 union 的全掃問題，但引入新問題：**樹可能退化成一條鏈**。如果 union 順序剛好是 `union(0,1), union(1,2), union(2,3), ...`，每次都把舊的 root 接到新元素底下，最終 `find(0)` 要走 n 步。
+
+問題出在 union 時沒有任何規則決定「誰當 child、誰當 parent」。下一頁：每次都把**矮樹接到高樹底下**，避免樹變高。
+
+→ 下一頁：[Weighted Quick Union](/graph/uf-weighted-quick-union)
+
+## 複雜度
+
+### find / union：兩者都 O(tree height)
+
+```
+T_find(n) = O(h)，其中 h 是當前樹的高度
+T_union(n) = 2 · T_find(n) + O(1) = O(h)
+```
+
+最壞情況 `h = n`（鏈狀退化），所以兩者都是 `O(n)` worst-case。
+
+平均情況也不樂觀：在惡意輸入下，N 次 union 的總時間可以推到 `Θ(N · n)`。
+
+### 空間：O(n)
+
+只存 `parents` 陣列。
+
+## 跟其他變體比較
+
+| 變體 | find | union | 主要痛點 |
+|---|---|---|---|
+| [Quick Find](/graph/uf-quick-find) | O(1) | O(n) | union 全掃 |
+| **Quick Union**（本頁） | O(n) 最壞 | O(n) 最壞 | 樹退化成鏈 |
+| [Weighted](/graph/uf-weighted-quick-union) | O(log n) | O(log n) | — |
+| [Weighted + Path Compression](/graph/uf-path-compression) | α(n) | α(n) | — |
+
+## 常見題型
+
+Quick Union 是後續所有優化版本的骨架，很多題目用「未優化版」就能 AC，但加上 weighted + path compression 才穩：
+
+- [LeetCode 547 · Number of Provinces](https://leetcode.com/problems/number-of-provinces/)
+- [LeetCode 684 · Redundant Connection](https://leetcode.com/problems/redundant-connection/)
+- [LeetCode 1319 · Number of Operations to Make Network Connected](https://leetcode.com/problems/number-of-operations-to-make-network-connected/)
+- [LeetCode 261 · Graph Valid Tree](https://leetcode.com/problems/graph-valid-tree/)
