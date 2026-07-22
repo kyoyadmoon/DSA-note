@@ -18,9 +18,17 @@ const SORTING_LINKS = [
   { href: "/sorting/heap-sort", label: "Heap sort" },
 ] as const;
 
+const GRAPH_LINKS = [
+  { href: "/graph/uf-quick-find", label: "Quick Find" },
+  { href: "/graph/uf-quick-union", label: "Quick Union" },
+  { href: "/graph/uf-weighted-quick-union", label: "Weighted Quick Union" },
+  { href: "/graph/uf-path-compression", label: "+ Path Compression" },
+] as const;
+
 const NAV_SECTIONS = [
   { title: "Sorting", links: SORTING_LINKS },
   { title: "Trees", links: TREE_LINKS },
+  { title: "Graph", links: GRAPH_LINKS },
 ] as const;
 
 type Props = {

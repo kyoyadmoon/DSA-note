@@ -84,6 +84,45 @@ export const xxxSortMeta: AlgorithmMeta                       // name/slug/compl
 6. **跟其他排序比較**（GFM table）
 7. **常見題型** — LeetCode 題號 + 連結
 
+### Category 第一頁的責任：先建立背景、再講變體
+
+當你新增一個 category（sorting / tree / graph / ...）的第一頁時，**不能直接跳進「這個變體怎麼做」**。讀者落地的第一頁要替他建立整個 category 的座標：
+
+1. **這個 category 在解什麼問題？** —— 用一段定義領域問題（例：「動態連通性」「比較式排序」「在二元樹上系統性走訪每個節點」）
+2. **核心 API 是什麼？** —— 列出這個資料結構/演算法家族的標準操作（例：UF 的 `union` / `find`、tree 的「走訪」、heap 的 `push` / `pop`）
+3. **常見應用情境** —— 讓讀者知道為什麼要學
+4. **再進入本頁變體的具體實作**
+
+後續變體頁可以省掉 1–3，直接從變體本身講起；但若有讀者直接從搜尋結果跳進變體頁（不是從第一頁循序走），cross-link 回第一頁的背景說明（例：`[Quick Find](/graph/uf-quick-find#union-find-在解什麼問題)`）。
+
+### 互動 Runner 的 ops/input 必須說明來源
+
+讀者看到動畫時很容易誤以為「演算法自己在挑下一步」。對於吃序列化輸入的演算法（UF 的 ops 序列、graph 的 edge 列表等），第一頁要明說：
+
+- **資料結構是被動的**——序列由呼叫端餵進來，演算法自己不挑
+- **MDX 寫死 vs Random vs StepPlayer 的差別**：MDX `props` 是固定測試序列；`Random` 按鈕重新生成；`StepPlayer` 的 Prev/Next 只在已生成的 step 序列裡移動，不改變 ops
+- **真實題目對照**：用一個 GFM table 列出真實題目的 ops 來源（LeetCode 547 的雙重迴圈、684 的 edge 陣列、Kruskal 的權重排序），讓讀者把 visualizer 跟現實對接
+- **順序影響什麼、不影響什麼**：明確列出（例：UF 順序影響樹形/速度，但不影響最終連通性）
+
+對於變體頁，視 ops 順序對該變體的重要性決定是否再講：
+- **順序開始有結構性影響**的變體（例：Quick Union 的鏈狀退化）：要短段提醒，並用對照例子展示「壞順序 vs 好順序」
+- **順序影響被吃掉**的變體（例：Weighted 的承諾「不論呼叫端順序都 O(log n)」）：要點出這個承諾，並說明為什麼這頁的 ops 是刻意挑的（示範最佳形狀）
+- 後續頁省掉完整解釋，cross-link 回第一頁
+
+### 定義要正向，不要靠「不是 X」來鋪陳
+
+**反模式**：「`parent[i]` 不是 parent，而是 component 代表」——讀者剛進來根本沒有「parent」這個預設，這句話在駁倒一個他沒有的假設，反而種下困惑。
+
+**正面寫法**：先正向定義新概念（「用一個陣列 `id[]`，`id[i]` 直接存 i 所屬 component 的代表」），等到下一個變體真的引入「parent 指標」概念時再點出差異（「這次 `parent[i]` 真的代表 i 的 parent」）。**反向定義只在讀者已經在前一頁建立了該預設時才有意義。**
+
+### 中文修辭：直白優先，避開誇張比喻
+
+- ❌ 不要用「命門」「要害」「殺手鐧」「絕招」這類武俠/中醫味的詞
+- ❌ 不要用「核武」「神器」「黑魔法」這類誇張比喻
+- ✅ 直白詞彙就好：「主要瓶頸」「關鍵痛點」「為什麼 X 慢」「最壞情況」「決定性的差異」
+
+筆記面向是技術讀者，不是文案。比喻只在能讓概念更清楚時才用（例：「像剝洋蔥」「像水位線」），不為修辭而修辭。
+
 ## 測試
 - **每個演算法**至少要有：空陣列 / 單一元素 / 已排序 / 反向 / 重複值 / 大量 random input 對比 `Array.prototype.sort` 的測試
 - **每個 `xxxSortSteps`** 也要測：multiset invariant（每個 step 的值集合不變）、final step 的值序列要等於 `xxxSort` 的結果、item id 在整個 steps 序列中保持穩定
@@ -96,3 +135,7 @@ export const xxxSortMeta: AlgorithmMeta                       // name/slug/compl
 - 不要在 MDX 裡寫 inline style 或 inline Tailwind 給標題 / 段落 — 這些應該在 `mdx-components.tsx` 統一
 - 不要硬寫色碼 — 一律走 `@theme` 定義的 token
 - 不要忘記配合 Turbopack 的 string-form plugin 設定（`remarkPlugins: ["remark-gfm"]`，不是 `[remarkGfm]`）
+- 不要在 category 第一頁直接跳進變體實作 — 必須先建立「這個 category 在解什麼問題 / 核心 API / 應用場景」的背景
+- 不要假設讀者知道「資料結構是被動的」這件事 — 對於吃 ops 序列的演算法（UF、graph）必須明說序列由呼叫端餵、Random/Reset/StepPlayer 各自做什麼、對應真實題目從哪取得序列
+- 不要用反向定義（「X 不是 Y 而是 Z」）當引入手段 — 只在讀者已經在前頁建立 Y 的預設時才寫
+- 不要用武俠/中醫/誇張比喻（命門、要害、核武、神器…） — 用直白詞彙

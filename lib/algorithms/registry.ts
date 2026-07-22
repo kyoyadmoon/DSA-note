@@ -1,5 +1,10 @@
 import type { AlgorithmMeta, ArrayStep } from "@/lib/types/step";
 import type { TreeAlgorithmMeta, TreeStep } from "@/lib/types/tree";
+import type {
+  UnionFindAlgorithmMeta,
+  UnionFindInput,
+  UnionFindStep,
+} from "@/lib/types/unionFind";
 import {
   bubbleSortMeta,
   bubbleSortSource,
@@ -20,6 +25,11 @@ import {
   levelOrderSource,
   levelOrderSteps,
 } from "@/lib/algorithms/tree/levelOrder";
+import {
+  quickFindMeta,
+  quickFindSource,
+  quickFindSteps,
+} from "@/lib/algorithms/graph/union-find/quickFind";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -68,5 +78,25 @@ export function getAlgorithm(slug: string): AlgorithmEntry {
 export function getTreeAlgorithm(slug: string): TreeAlgorithmEntry {
   const entry = treeRegistry[slug];
   if (!entry) throw new Error(`Unknown tree algorithm slug: ${slug}`);
+  return entry;
+}
+
+export type UnionFindAlgorithmEntry = {
+  meta: UnionFindAlgorithmMeta;
+  source: string;
+  steps: (input: UnionFindInput) => UnionFindStep[];
+};
+
+export const unionFindRegistry: Record<string, UnionFindAlgorithmEntry> = {
+  "uf-quick-find": {
+    meta: quickFindMeta,
+    source: quickFindSource,
+    steps: quickFindSteps,
+  },
+};
+
+export function getUnionFindAlgorithm(slug: string): UnionFindAlgorithmEntry {
+  const entry = unionFindRegistry[slug];
+  if (!entry) throw new Error(`Unknown union-find algorithm slug: ${slug}`);
   return entry;
 }
