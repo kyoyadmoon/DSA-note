@@ -1,0 +1,82 @@
+import { AlgorithmRunner } from "@/components/visualizer/AlgorithmRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Sorting · 05
+</div>
+
+# Merge Sort
+
+Merge sort 把排序拆成兩個階段：先把區間持續切半，直到每段只剩一個元素；再把相鄰的已排序區間合併。單元素天然有序，而兩個已排序序列可以用左右游標在線性時間內合成一個更大的已排序序列。
+
+<AlgorithmRunner slug="merge-sort" initial={[7, 3, 8, 2, 6, 1]} />
+
+動畫會先標出目前切分或合併的區間。合併時 `L`、`R` 分別指向左右兩半尚未取用的第一個元素；比較完所有必要配對後，一次寫回完整區間，讓每個畫面都保留原始元素的身份與數量。
+
+## 分治結構
+
+對半開區間 `a[lo..hi)` 排序時：
+
+1. 若區間長度不超過 1，直接返回
+2. 令 `mid = lo + floor((hi - lo) / 2)`
+3. 遞迴排序 `a[lo..mid)`
+4. 遞迴排序 `a[mid..hi)`
+5. 合併兩個已排序區間
+
+每層把問題切成兩個約一半大小的子問題，所以遞迴樹高度是 `O(log n)`。
+
+## Merge invariant
+
+合併開始時，左右兩半都已排序。建立結果的過程維持：
+
+- 已寫入結果的元素，是兩半所有已取用元素由小到大的排列
+- `L` 與 `R` 指向兩半各自剩餘的最小值
+- 下一個全域最小值一定是 `a[L]`、`a[R]` 其中之一
+
+因此只要每次取較小者，就不會漏掉更小的元素。某一側耗盡後，另一側剩餘內容本來就已排序，可直接依序附加。
+
+## 複雜度
+
+遞迴樹每一層合計處理 `n` 個元素，共有 `O(log n)` 層：
+
+```
+T(n) = 2T(n / 2) + Θ(n) = Θ(n log n)
+```
+
+不論輸入已排序、反向排序或隨機排列，這個版本仍會完成相同的切分與合併結構，所以最好、平均、最壞時間都是 `O(n log n)`。
+
+合併需要長度為 `n` 的輔助陣列；遞迴 stack 另需 `O(log n)`，總額外空間由輔助陣列主導，為 `O(n)`。因此這個陣列版本不是 in-place。
+
+## 為什麼穩定
+
+左右值相等時，程式選擇左側：
+
+```ts
+else if (aux[j] < aux[i]) arr[k] = aux[j++];
+else arr[k] = aux[i++];
+```
+
+左半元素在原陣列中一定早於右半元素。相等時先取左側，便能保留原始相對順序；若改成相等時先取右側，就會破壞穩定性。
+
+## 跟 Quick Sort 比較
+
+| 特性 | Merge Sort | [Quick Sort](/sorting/quick-sort) |
+|---|---|---|
+| 平均時間 | O(n log n) | O(n log n) |
+| 最壞時間 | O(n log n) | O(n²) |
+| 額外空間 | O(n) | 平均 O(log n) stack |
+| 穩定 | 是 | 否 |
+| 效能關鍵 | 線性合併 | partition 是否平衡 |
+
+Merge sort 提供確定的最壞時間界線與穩定性，代價是額外緩衝區。對 linked list 而言，合併可透過重新連結節點完成，不必配置 `O(n)` 的陣列緩衝，因此特別適合 linked list 排序。
+
+## 常見變形與題型
+
+- Bottom-up Merge sort：先合併長度 1 的相鄰區間，再處理長度 2、4、8，不需遞迴
+- 計算逆序對：合併時，右側值先被取出代表它小於左側尚未取用的所有元素
+- 外部排序：資料無法一次放入記憶體時，先排序小批次，再多路合併
+
+練習題：
+
+- [LeetCode 148 · Sort List](https://leetcode.com/problems/sort-list/)
+- [LeetCode 493 · Reverse Pairs](https://leetcode.com/problems/reverse-pairs/)
+- [LeetCode 912 · Sort an Array](https://leetcode.com/problems/sort-an-array/)
