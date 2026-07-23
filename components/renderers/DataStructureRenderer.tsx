@@ -13,6 +13,8 @@ import type {
   GraphView,
   LinearCollectionItemState,
   LinearCollectionView,
+  LruCacheView,
+  LruEntryState,
   MonotonicItemState,
   MonotonicStackView,
   LinkedListNodeState,
@@ -67,7 +69,79 @@ export function DataStructureRenderer({ step }: Props) {
       return <GraphRenderer view={step.view} />;
     case "monotonic-stack":
       return <MonotonicStackRenderer view={step.view} />;
+    case "lru-cache":
+      return <LruCacheRenderer view={step.view} />;
   }
+}
+
+function lruEntryColor(state: LruEntryState): string {
+  switch (state) {
+    case "active":
+      return "var(--color-bar-compare)";
+    case "new":
+      return "var(--color-bar-sorted)";
+    case "evicting":
+      return "var(--color-bar-swap)";
+    default:
+      return "var(--color-bar-idle)";
+  }
+}
+
+function LruCacheRenderer({ view }: { view: LruCacheView }) {
+  return (
+    <div className="flex h-full flex-col justify-center gap-7 overflow-auto px-7 py-8">
+      <div className="grid grid-cols-[7rem_1fr] items-start gap-4">
+        <div className="rounded-lg border border-border bg-surface-raised/40 p-3">
+          <div className="mb-2 text-[10px] uppercase tracking-wider text-muted">Hash Map</div>
+          <div className="flex flex-wrap gap-1.5">
+            {view.mapKeys.length === 0 ? (
+              <span className="font-mono text-xs text-muted">empty</span>
+            ) : (
+              view.mapKeys.map((key) => (
+                <span key={key} className="rounded border border-border px-2 py-1 font-mono text-xs text-foreground">
+                  {key} → node
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="overflow-auto rounded-lg border border-border bg-surface-raised/25 p-4">
+          <div className="mb-3 flex justify-between text-[10px] uppercase tracking-wider text-muted">
+            <span>MRU</span><span>LRU</span>
+          </div>
+          <div className="flex min-w-max items-center">
+            <span className="rounded-md border border-dashed border-border px-2 py-3 font-mono text-[10px] text-muted">head</span>
+            {view.entries.map((entry) => (
+              <div key={entry.key} className="flex items-center">
+                <span className="mx-2 font-mono text-muted">⇄</span>
+                <motion.div
+                  layout
+                  animate={{
+                    backgroundColor: lruEntryColor(entry.state),
+                    scale: entry.state === "idle" ? 1 : 1.06,
+                    opacity: entry.state === "evicting" ? 0.6 : 1,
+                  }}
+                  className="flex h-14 min-w-16 items-center justify-center rounded-lg px-3 font-mono font-semibold text-background shadow-sm"
+                >
+                  {entry.key}
+                </motion.div>
+              </div>
+            ))}
+            <span className="mx-2 font-mono text-muted">⇄</span>
+            <span className="rounded-md border border-dashed border-border px-2 py-3 font-mono text-[10px] text-muted">tail</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap justify-between gap-3 rounded-lg border border-border px-4 py-3 font-mono text-xs text-muted">
+        <span>capacity {view.entries.length}/{view.capacity}</span>
+        <span>hits {view.hits} · misses {view.misses}</span>
+        <span>evicted [{view.evicted.join(", ")}]</span>
+        {view.request && <span className="text-accent">request {view.request}</span>}
+      </div>
+    </div>
+  );
 }
 
 function monotonicItemColor(state: MonotonicItemState): string {

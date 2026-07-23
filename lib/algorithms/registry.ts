@@ -190,6 +190,11 @@ import {
   dijkstraSource,
   dijkstraSteps,
 } from "@/lib/algorithms/graph/dijkstra";
+import {
+  lruCacheMeta,
+  lruCacheSource,
+  lruCacheSteps,
+} from "@/lib/algorithms/data-structures/lruCache";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -499,6 +504,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Dijkstra expects a graph input");
       }
       return dijkstraSteps(input);
+    },
+  },
+  "lru-cache": {
+    meta: lruCacheMeta,
+    source: lruCacheSource,
+    steps: (input) => {
+      if (input.kind !== "words") {
+        throw new Error("LRU Cache expects a words input");
+      }
+      return lruCacheSteps(input.values);
     },
   },
 };

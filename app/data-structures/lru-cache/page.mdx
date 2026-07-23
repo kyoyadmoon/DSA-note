@@ -1,0 +1,103 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure Design · LRU Cache
+</div>
+
+# LRU Cache
+
+## 一句話定位
+
+LRU（Least Recently Used）Cache 在容量滿時淘汰最久未被 get／put 的 key。Hash Map 提供 expected O(1) key lookup，Doubly Linked List 提供 O(1) 更新 recency 與尾端淘汰。
+
+<DataStructureRunner
+  slug="lru-cache"
+  initial={{ kind: "words", values: ["A", "B", "C", "A", "D"] }}
+/>
+
+## 為什麼需要兩個結構
+
+| 需求 | Hash Map | Doubly Linked List |
+|---|---:|---:|
+| 由 key 找 node | expected O(1) | O(n) |
+| 找 MRU / LRU | 無順序保證 | O(1) head / tail |
+| 已知 node 移到 MRU | 不負責順序 | O(1) detach + insert |
+| 淘汰 LRU | 無直接位置 | O(1) tail.prev |
+
+只有 Map 不知道 recency；只有 List 找 key 要 O(n)。兩者保存的是同一批 logical entries，各自建立不同 index。
+
+## 必須守住的 invariant
+
+```text
+Map 中每個 key 恰好對應 List 中一個 data node
+List 中每個 data node 的 key 都存在 Map
+head.next 是 MRU，tail.prev 是 LRU
+data node 數量 <= capacity
+```
+
+若只從 List 刪除、漏掉 Map，之後 get 會拿到 detached stale node；若只刪 Map，List 會保留 ghost entry。
+
+## Get 與 Put
+
+`get(key)`：
+
+1. Map 不存在：miss。
+2. Map 找到 node：從目前位置 detach。
+3. 插到 head 後方，成為 MRU，再回傳 value。
+
+`put(key, value)`：
+
+1. Key 已存在：更新 value 並移到 MRU；size 不變。
+2. Key 不存在：建立 node、加入 Map 與 MRU。
+3. 若 size > capacity，移除 `tail.prev`，並從 Map 刪除同 key。
+
+## Sentinel Nodes 為什麼有用
+
+固定的 head / tail dummy nodes 讓所有 data node 都有 prev 與 next。刪除 MRU、LRU、唯一節點時可使用同一段 pointer rewiring，不必為 null 邊界寫多組分支。
+
+```text
+head ⇄ MRU ⇄ ... ⇄ LRU ⇄ tail
+```
+
+Sentinel 不計入 capacity，也不能被淘汰。
+
+## 複雜度的完整說法
+
+- Map lookup：expected O(1)，最壞仍受 hash collision 影響。
+- List detach / insert / tail lookup：O(1)。
+- Get / Put 合併後：expected O(1)。
+- Space：O(capacity)。
+
+用 Array 保存 recency 雖容易，但把中間 key 移到前端需要搜尋與搬移，會成為 O(n)，不符合面試常見要求。
+
+## 容易漏掉的邊界
+
+- Capacity = 0：put 後應立即淘汰，或由 contract 禁止。
+- Put existing key：更新 value 並移到 MRU，不能新增 duplicate node。
+- Get miss：通常不改變 recency。
+- Evict：Map 與 List 必須原子式保持一致。
+- Node detach 後可清掉 prev／next，降低錯誤連結風險。
+
+## 語言內建有序 Map 可以嗎
+
+某些語言的 Map 保留 insertion order，可用 delete + reinsert 模擬 recency；這是實務上可能的簡化。但面試若要求設計結構或 expected O(1) 操作，通常仍應能說明 Hash Map + Doubly Linked List 的通用解法與 invariant，不依賴特定語言 order contract。
+
+## Retrieval check
+
+1. 為什麼 Singly Linked List 不適合 O(1) 移除任意已知 node？
+2. Cache hit 後 recency 如何改變？
+3. Eviction 要同步修改哪兩個結構？
+4. Sentinel nodes 消除了哪些邊界分支？
+
+答案應提到：缺少 prev；移到 MRU；List 與 Map；head／tail／唯一節點的 null 特例。
+
+## 代表題型
+
+- [LeetCode 146 · LRU Cache](https://leetcode.com/problems/lru-cache/)
+- [LeetCode 460 · LFU Cache](https://leetcode.com/problems/lfu-cache/)
+- [LeetCode 432 · All O(1) Data Structure](https://leetcode.com/problems/all-oone-data-structure/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 2: Data Structures](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [LeetCode 146 · LRU Cache](https://leetcode.com/problems/lru-cache/)
