@@ -130,6 +130,11 @@ import {
   doublyLinkedListSource,
   doublyLinkedListSteps,
 } from "@/lib/algorithms/data-structures/doublyLinkedList";
+import {
+  stackMeta,
+  stackSource,
+  stackSteps,
+} from "@/lib/algorithms/data-structures/stack";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -319,6 +324,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Doubly Linked List expects a numbers input");
       }
       return doublyLinkedListSteps(input.values);
+    },
+  },
+  stack: {
+    meta: stackMeta,
+    source: stackSource,
+    steps: (input) => {
+      if (input.kind !== "numbers") {
+        throw new Error("Stack expects a numbers input");
+      }
+      return stackSteps(input.values);
     },
   },
 };

@@ -1,0 +1,76 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 04
+</div>
+
+# Stack
+
+## 一句話定位
+
+Stack 只允許從同一端加入與移除元素，遵守 LIFO（Last In, First Out）。面試中它常用來保存「尚未完成、之後必須回來處理」的工作。
+
+<DataStructureRunner
+  slug="stack"
+  initial={{ kind: "numbers", values: [3, 7, 9, 12] }}
+/>
+
+## 必須守住的 invariant
+
+```text
+top 永遠是最後一個成功 push、但尚未 pop 的元素
+pop 的輸出順序，恰好是仍在 Stack 中元素的反向 push 順序
+```
+
+Stack 是抽象介面，不限定底層一定是 Array 或 Linked List。只要 `push`、`pop`、`peek` 的可觀察行為符合 LIFO，就是 Stack。
+
+## 操作與複雜度
+
+| 操作 | Array 實作 | Linked List 實作 |
+|---|---:|---:|
+| `push` | amortized O(1) | O(1) |
+| `pop` | O(1) | O(1) |
+| `peek` | O(1) | O(1) |
+| 搜尋指定值 | O(n) | O(n) |
+
+用 JavaScript Array 實作時應使用尾端的 `push` / `pop`。若改用開頭的 `unshift` / `shift`，元素搬移會讓操作退化為 O(n)。
+
+## 如何辨認 Stack 題型
+
+- 括號、HTML tag 或 expression 是否正確配對。
+- 遇到右界時，要回頭處理最近一個尚未完成的左界。
+- Iterative DFS：保存下一個要深入的節點。
+- Monotonic Stack：找 next greater / smaller element。
+- Undo、瀏覽路徑、函式呼叫與遞迴。
+
+判斷線索不是題目出現「Stack」一詞，而是工作需要以「最近開始者最先完成」的順序被取回。
+
+## Call Stack 與遞迴
+
+每次函式呼叫會保存參數、區域變數與返回位置；遞迴就是把新 frame push 到 call stack，return 時再 pop。若遞迴深度是 h，額外空間通常是 O(h)，而不是一律 O(1)。
+
+## Underflow 與 API contract
+
+空 Stack 上呼叫 `pop` / `peek` 時，可以回傳 `undefined`、null、Result type，或拋出例外。面試時應先說明選擇並保持一致；不能假設輸入永遠合法而偷偷讀取不存在的 top。
+
+## Retrieval check
+
+1. 為什麼 Array 的 `push` 通常寫成 amortized O(1)？
+2. 有效括號題遇到 `)` 時，Stack top 必須滿足什麼？
+3. 遞迴深度 h 對額外空間有何影響？
+4. 為什麼用 `shift` 實作 pop 不理想？
+
+答案應提到：偶爾需要 resize；top 必須是對應左括號；O(h)；需要搬移其餘元素。
+
+## 代表題型
+
+- [LeetCode 20 · Valid Parentheses](https://leetcode.com/problems/valid-parentheses/)
+- [LeetCode 155 · Min Stack](https://leetcode.com/problems/min-stack/)
+- [LeetCode 150 · Evaluate Reverse Polish Notation](https://leetcode.com/problems/evaluate-reverse-polish-notation/)
+- [LeetCode 394 · Decode String](https://leetcode.com/problems/decode-string/)
+- [LeetCode 739 · Daily Temperatures](https://leetcode.com/problems/daily-temperatures/)
+
+## 可信來源
+
+- [Princeton Algorithms · Stacks and Queues](https://algs4.cs.princeton.edu/13stacks/)
+- [MIT 6.006 · Lecture 2: Data Structures](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)

@@ -5,6 +5,8 @@ import { Legend } from "@/components/visualizer/Legend";
 import type {
   DataStructureStep,
   DynamicArrayView,
+  LinearCollectionItemState,
+  LinearCollectionView,
   LinkedListNodeState,
   LinkedListView,
   StructureSlotState,
@@ -42,7 +44,63 @@ export function DataStructureRenderer({ step }: Props) {
       return <DynamicArrayRenderer view={step.view} />;
     case "linked-list":
       return <LinkedListRenderer view={step.view} />;
+    case "linear-collection":
+      return <LinearCollectionRenderer view={step.view} />;
   }
+}
+
+function linearItemColor(state: LinearCollectionItemState): string {
+  switch (state) {
+    case "active":
+      return "var(--color-bar-compare)";
+    case "new":
+      return "var(--color-bar-sorted)";
+    case "removing":
+      return "var(--color-bar-swap)";
+    default:
+      return "var(--color-bar-idle)";
+  }
+}
+
+function LinearCollectionRenderer({ view }: { view: LinearCollectionView }) {
+  if (view.mode !== "stack") {
+    return null;
+  }
+
+  return (
+    <div className="relative flex h-full items-center justify-center overflow-auto px-8 py-8">
+      <div className="flex min-h-72 min-w-44 flex-col justify-end rounded-b-2xl border-x-2 border-b-2 border-border bg-surface-raised/35 px-4 pb-4 pt-12">
+        {view.items.length === 0 ? (
+          <div className="my-auto text-center font-mono text-sm text-muted">
+            empty stack
+          </div>
+        ) : (
+          [...view.items].reverse().map((item) => (
+            <motion.div
+              key={item.id}
+              layout
+              animate={{
+                backgroundColor: linearItemColor(item.state),
+                scale: item.state === "idle" ? 1 : 1.05,
+                opacity: item.state === "removing" ? 0.65 : 1,
+              }}
+              className="relative mb-2 flex h-12 min-w-32 items-center justify-center rounded-lg font-mono text-base font-semibold text-background shadow-sm"
+            >
+              {item.id === view.topId && (
+                <span className="absolute -right-12 font-mono text-[10px] uppercase tracking-wider text-accent">
+                  top
+                </span>
+              )}
+              {item.value}
+            </motion.div>
+          ))
+        )}
+      </div>
+      <div className="absolute bottom-4 right-5 font-mono text-xs text-muted">
+        output [{view.output.join(", ")}]
+      </div>
+    </div>
+  );
 }
 
 function linkedNodeColor(state: LinkedListNodeState): string {
