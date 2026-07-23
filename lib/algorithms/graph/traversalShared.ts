@@ -73,15 +73,16 @@ export function edgeIdBetween(
 
 export function makeTraversalStep(
   graph: PreparedGraph,
-  mode: "bfs" | "dfs",
+  mode: "bfs" | "dfs" | "topological" | "dijkstra",
   frontier: string[],
   visitOrder: string[],
   config: Omit<DataStructureStep, "view"> & {
     nodeStates?: Record<string, GraphNodeState>;
     edgeStates?: Record<string, GraphEdgeState>;
+    nodeBadges?: Record<string, string>;
   },
 ): DataStructureStep {
-  const { nodeStates = {}, edgeStates = {}, ...step } = config;
+  const { nodeStates = {}, edgeStates = {}, nodeBadges = {}, ...step } = config;
   return {
     ...step,
     view: {
@@ -90,6 +91,7 @@ export function makeTraversalStep(
       nodes: nodePositions(graph.nodes).map((node) => ({
         ...node,
         state: nodeStates[node.id] ?? "idle",
+        badge: nodeBadges[node.id],
       })),
       edges: graph.edges.map((edge) => ({
         ...edge,

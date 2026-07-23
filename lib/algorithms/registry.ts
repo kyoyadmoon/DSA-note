@@ -180,6 +180,11 @@ import {
   monotonicStackSource,
   monotonicStackSteps,
 } from "@/lib/algorithms/data-structures/monotonicStack";
+import {
+  topologicalSortMeta,
+  topologicalSortSource,
+  topologicalSortSteps,
+} from "@/lib/algorithms/graph/topologicalSort";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -469,6 +474,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Monotonic Stack expects a numbers input");
       }
       return monotonicStackSteps(input.values);
+    },
+  },
+  "topological-sort": {
+    meta: topologicalSortMeta,
+    source: topologicalSortSource,
+    steps: (input) => {
+      if (input.kind !== "graph") {
+        throw new Error("Topological Sort expects a graph input");
+      }
+      return topologicalSortSteps(input);
     },
   },
 };

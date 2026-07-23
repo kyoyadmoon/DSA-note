@@ -201,6 +201,11 @@ function GraphRenderer({ view }: { view: GraphView }) {
                 <text textAnchor="middle" dominantBaseline="central" className="fill-background font-mono text-sm font-bold">
                   {node.label}
                 </text>
+                {node.badge && (
+                  <text y="39" textAnchor="middle" className="fill-muted font-mono text-[10px]">
+                    {node.badge}
+                  </text>
+                )}
               </g>
             ))}
           </svg>
