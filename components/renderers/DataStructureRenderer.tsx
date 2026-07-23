@@ -129,7 +129,9 @@ function LinearCollectionRenderer({ view }: { view: LinearCollectionView }) {
                 </div>
               </div>
               {index < view.items.length - 1 && (
-                <span className="mx-1 mt-3 font-mono text-muted">→</span>
+                <span className="mx-1 mt-3 font-mono text-muted">
+                  {view.mode === "deque" ? "↔" : "→"}
+                </span>
               )}
             </div>
           ))

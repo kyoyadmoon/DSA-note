@@ -1,0 +1,81 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 06
+</div>
+
+# Deque
+
+## 一句話定位
+
+Deque（double-ended queue）允許從 front 與 back 兩端加入、移除和查看元素。它包含 Stack 與 Queue 的操作能力，也是 monotonic queue 和 0-1 BFS 的常用基礎。
+
+<DataStructureRunner
+  slug="deque"
+  initial={{ kind: "numbers", values: [4, 8, 15, 16] }}
+/>
+
+## 必須守住的 invariant
+
+```text
+size === 0  ⇒  front 與 back 都不存在
+size > 0   ⇒  front 與 back 都指向有效元素
+任何一端的操作都不改變其餘元素的相對順序
+```
+
+Deque 不是「可以隨機存取的 Array」。標準介面只承諾兩端 O(1) 操作；搜尋與依 index 存取是否可用、複雜度如何，取決於底層實作。
+
+## 操作與複雜度
+
+| 操作 | Circular Array | Doubly Linked List |
+|---|---:|---:|
+| `pushFront` / `pushBack` | amortized O(1) | O(1) |
+| `popFront` / `popBack` | O(1) | O(1) |
+| `peekFront` / `peekBack` | O(1) | O(1) |
+| 空間 | O(capacity) | O(n) + 指標 |
+
+Circular Array 偶爾需要擴容，所以 push 寫成 amortized O(1)；linked list 不需整體 resize，但每節點要保存兩個連結且 cache locality 較差。
+
+## Circular Buffer 的 index 公式
+
+容量為 `capacity`、目前元素數為 `size` 時：
+
+```text
+pushFront 的新位置 = (front - 1 + capacity) % capacity
+pushBack  的新位置 = (front + size) % capacity
+目前 back 的位置   = (front + size - 1) % capacity
+```
+
+加上 capacity 再取餘數，是為了避免負 index。擴容時通常把現有元素依邏輯順序複製到新 array 的 0..size-1，再把 front 重設為 0。
+
+## Monotonic Deque
+
+Sliding Window Maximum 中，deque 保存「仍在 window 內、且可能成為最大值」的 index：
+
+1. front 若已離開 window，就 popFront。
+2. back 對應值若不大於新值，就 popBack，因為它不可能再成為答案。
+3. pushBack 新 index。
+4. front 始終是目前 window 最大值的 index。
+
+每個 index 最多進出 deque 各一次，因此總時間 O(n)，而不是每個 window 都重掃 O(k)。
+
+## Retrieval check
+
+1. Deque 和 Queue 的 API 差在哪裡？
+2. Circular buffer 的 front 從 0 往前移一格，index 如何計算？
+3. Sliding Window Maximum 為什麼保存 index 而不是只保存 value？
+4. Monotonic deque 為什麼總時間是 O(n)？
+
+答案應提到：Deque 開放兩端；`(front - 1 + capacity) % capacity`；需要判斷是否離開 window；每個 index 最多 push/pop 常數次。
+
+## 代表題型
+
+- [LeetCode 239 · Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/)
+- [LeetCode 641 · Design Circular Deque](https://leetcode.com/problems/design-circular-deque/)
+- [LeetCode 862 · Shortest Subarray with Sum at Least K](https://leetcode.com/problems/shortest-subarray-with-sum-at-least-k/)
+- [LeetCode 1438 · Longest Continuous Subarray With Absolute Diff Limit](https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-limit/)
+
+## 可信來源
+
+- [Princeton Algorithms · Stacks and Queues](https://algs4.cs.princeton.edu/13stacks/)
+- [Open Data Structures · Array Deque](https://opendatastructures.org/ods-python/2_4_ArrayDeque_Fast_Deque_O.html)
