@@ -1,0 +1,90 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Graph · Topological Sort
+</div>
+
+# Topological Sort
+
+## 一句話定位
+
+Topological Sort 把 directed graph 的 vertices 排成線性順序，使每條 edge `u → v` 中 u 都出現在 v 之前。只有 DAG（Directed Acyclic Graph）存在完整拓撲順序。
+
+<DataStructureRunner
+  slug="topological-sort"
+  initial={{
+    kind: "graph",
+    nodes: ["A", "B", "C", "D", "E"],
+    edges: [["A", "C"], ["B", "C"], ["C", "D"], ["C", "E"]],
+    start: "A",
+    directed: true,
+  }}
+/>
+
+## Kahn’s Algorithm 的 invariant
+
+```text
+Queue 只包含目前 in-degree = 0 的 vertices
+已輸出的 vertex 不再受任何未完成 prerequisite 限制
+移除 u → v 時，inDegree[v] 恰好減一
+```
+
+in-degree 可以理解成「尚未完成的 prerequisites 數」。取出 in-degree 0 vertex 後，把它的 outgoing edges 移除；新的 in-degree 0 vertices 才能入列。
+
+## 演算法步驟
+
+1. 掃描所有 edges，計算每個 vertex 的 in-degree。
+2. 把所有 in-degree 0 vertices 放入 Queue。
+3. 反覆 dequeue vertex 並加入 output。
+4. 對每條 outgoing edge 讓 neighbor in-degree 減一；變成 0 就 enqueue。
+5. 若 output length < V，graph 含 cycle。
+
+最後一步不是附加檢查，而是正確性的一部分。Cycle 中的 vertices 會互相等待，沒有任何一個能降到 in-degree 0。
+
+## 順序通常不唯一
+
+若同時有多個 in-degree 0 vertices，可以任選一個，得到不同但都有效的拓撲順序。若題目要求 lexicographically smallest order，把普通 Queue 換成 Min Heap；時間會從 O(V + E) 變成 O((V + E) log V) 的相應上界。
+
+因此測試不應總是只比對一個固定陣列；更通用的驗證是檢查：
+
+```text
+order 包含每個 vertex 恰好一次
+對每條 u → v，position[u] < position[v]
+```
+
+## Kahn 與 DFS 解法
+
+| 面向 | Kahn | DFS postorder |
+|---|---|---|
+| 核心狀態 | in-degree + Queue | 三色 visited + call stack |
+| Cycle 判斷 | output length < V | 遇到 gray ancestor |
+| 產生順序 | dequeue 順序 | exit order 反轉 |
+| 適合額外需求 | 動態 prerequisite 計數 | dependency recursion / exit time |
+
+兩者時間都是 O(V + E)。
+
+## 建模方向最容易寫反
+
+若課程 A 是 B 的 prerequisite，通常 edge 應寫成 `A → B`，表示完成 A 後才能降低 B 的 in-degree。LeetCode 題目輸入可能用 `[course, prerequisite]`，建立 graph 時要明確轉成 `prerequisite → course`。
+
+## Retrieval check
+
+1. 什麼 graph 才存在完整 topological order？
+2. Kahn 演算法如何偵測 cycle？
+3. 多個 in-degree 0 vertices 代表什麼？
+4. 要最小字典序時，Queue 應換成什麼？
+
+答案應提到：DAG；輸出數量小於 V；順序可能不唯一；Min Heap。
+
+## 代表題型
+
+- [LeetCode 207 · Course Schedule](https://leetcode.com/problems/course-schedule/)
+- [LeetCode 210 · Course Schedule II](https://leetcode.com/problems/course-schedule-ii/)
+- [LeetCode 269 · Alien Dictionary](https://leetcode.com/problems/alien-dictionary/)
+- [LeetCode 310 · Minimum Height Trees](https://leetcode.com/problems/minimum-height-trees/)
+- [LeetCode 1136 · Parallel Courses](https://leetcode.com/problems/parallel-courses/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 10: Depth-First Search](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Princeton Algorithms · Directed Graphs](https://algs4.cs.princeton.edu/42digraph/)

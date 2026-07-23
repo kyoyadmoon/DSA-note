@@ -169,6 +169,7 @@ export type GraphNodeView = {
   x: number;
   y: number;
   state: GraphNodeState;
+  badge?: string;
 };
 
 export type GraphEdgeView = {
@@ -181,7 +182,7 @@ export type GraphEdgeView = {
 
 export type GraphView = {
   kind: "graph";
-  mode: "representation" | "bfs" | "dfs";
+  mode: "representation" | "bfs" | "dfs" | "topological" | "dijkstra";
   nodes: GraphNodeView[];
   edges: GraphEdgeView[];
   adjacency: Array<{ node: string; neighbors: string[] }>;
