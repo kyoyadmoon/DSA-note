@@ -137,7 +137,7 @@ export function DataStructureRunnerClient({
   );
 
   return (
-    <div className="not-prose my-10 rounded-2xl border border-border bg-surface/40 p-5 sm:p-6">
+    <div className="not-prose my-10 overflow-x-hidden rounded-2xl border border-border bg-surface/40 p-5 sm:p-6">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="font-serif text-2xl tracking-tight">{meta.name}</div>
