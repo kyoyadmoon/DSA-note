@@ -145,6 +145,11 @@ import {
   dequeSource,
   dequeSteps,
 } from "@/lib/algorithms/data-structures/deque";
+import {
+  hashTableMeta,
+  hashTableSource,
+  hashTableSteps,
+} from "@/lib/algorithms/data-structures/hashTable";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -364,6 +369,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Deque expects a numbers input");
       }
       return dequeSteps(input.values);
+    },
+  },
+  "hash-table": {
+    meta: hashTableMeta,
+    source: hashTableSource,
+    steps: (input) => {
+      if (input.kind !== "words") {
+        throw new Error("Hash Table expects a words input");
+      }
+      return hashTableSteps(input.values);
     },
   },
 };

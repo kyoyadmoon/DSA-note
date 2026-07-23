@@ -1,0 +1,78 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 07
+</div>
+
+# Hash Table
+
+## 一句話定位
+
+Hash Table 用 hash function 把 key 映射到有限的 bucket，再在 bucket 內確認完整 key。合理控制碰撞與 load factor 時，get、set、delete 可達 expected O(1)，但最壞情況仍是 O(n)。
+
+<DataStructureRunner
+  slug="hash-table"
+  initial={{ kind: "words", values: ["cat", "act", "dog", "god"] }}
+/>
+
+## 必須守住的 invariant
+
+```text
+相同 key 必須得到相同 hash / bucket
+每個已儲存 entry 都位於其 key 對應的 bucket
+hash 相同只代表候選 bucket 相同，仍必須比較完整 key
+Map 中相同 key 只保留一個邏輯 entry
+```
+
+Hash function 可以讓不同 key 得到同一結果；這是 collision，不是實作例外。正確性必須由 collision strategy 保證。
+
+## Collision 的兩種主要策略
+
+| 策略 | 作法 | 主要注意事項 |
+|---|---|---|
+| Separate chaining | 每個 bucket 保存一串 entries | chain 過長會讓操作退化 |
+| Open addressing | 發生碰撞後依 probe sequence 找其他 slot | delete 需要 tombstone，load factor 不能太高 |
+
+互動示範使用 separate chaining。`cat` 與 `act` 的字元總和相同，刻意落入同一 bucket，說明 hash 相等後仍要逐一比 key。
+
+## Load factor 與 resize
+
+Load factor `α = size / capacity`。當 α 超過實作設定的門檻時，通常配置更大的 bucket array，重新計算每個 entry 對新 capacity 的位置。
+
+Resize 單次是 O(n)，但若容量按比例成長，可把成本攤到多次插入，維持 amortized expected O(1)。門檻與成長倍率屬於實作選擇，面試時不應宣稱所有 Hash Table 都固定使用同一數字。
+
+## 複雜度要說完整
+
+- 在 hash 分布合理、load factor 受控的模型下：expected O(1)。
+- 多個 key 全落入同一 bucket：最壞 O(n)。
+- 計算 hash 本身要讀取 key；長度為 k 的字串 hash 通常至少 O(k)。
+- Space 是 O(n + capacity)，一般把受控 capacity 合併寫成 O(n)。
+
+## Map、Set 與計數題
+
+- Set 只關心 key 是否存在。
+- Map 保存 key → value，可做 frequency counter、index lookup、memoization。
+- Two Sum 用 Map 保存 `value → index`，把巢狀搜尋從 O(n²) 降成 expected O(n)。
+- Group Anagrams 先把每個字串轉成 canonical key，再用 Map 分組。
+
+## Retrieval check
+
+1. 為什麼 hash 相同後仍要比較完整 key？
+2. 什麼條件下 get / set 才能說 expected O(1)？
+3. Open addressing 的 delete 為什麼不能直接清成「從未使用」？
+4. 長度 k 的字串，計算 hash 的成本通常是多少？
+
+答案應提到：collision；合理分布與受控 load factor；會截斷 probe chain；至少 O(k)。
+
+## 代表題型
+
+- [LeetCode 1 · Two Sum](https://leetcode.com/problems/two-sum/)
+- [LeetCode 49 · Group Anagrams](https://leetcode.com/problems/group-anagrams/)
+- [LeetCode 128 · Longest Consecutive Sequence](https://leetcode.com/problems/longest-consecutive-sequence/)
+- [LeetCode 347 · Top K Frequent Elements](https://leetcode.com/problems/top-k-frequent-elements/)
+- [LeetCode 380 · Insert Delete GetRandom O(1)](https://leetcode.com/problems/insert-delete-getrandom-o1/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 4: Hashing](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Princeton Algorithms · Hash Tables](https://algs4.cs.princeton.edu/34hash/)

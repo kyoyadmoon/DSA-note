@@ -96,10 +96,35 @@ export type LinearCollectionView = {
   output: number[];
 };
 
+export type HashEntryState = "idle" | "active" | "new" | "removing" | "found";
+
+export type HashEntryView = {
+  id: string;
+  key: string;
+  value: number;
+  state: HashEntryState;
+};
+
+export type HashBucketView = {
+  index: number;
+  entries: HashEntryView[];
+  active: boolean;
+};
+
+export type HashTableView = {
+  kind: "hash-table";
+  buckets: HashBucketView[];
+  capacity: number;
+  size: number;
+  loadFactor: number;
+  hashLabel?: string;
+};
+
 export type DataStructureView =
   | DynamicArrayView
   | LinkedListView
-  | LinearCollectionView;
+  | LinearCollectionView
+  | HashTableView;
 
 export type DataStructureStep = {
   view: DataStructureView;
