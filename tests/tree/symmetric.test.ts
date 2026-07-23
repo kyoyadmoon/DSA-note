@@ -8,7 +8,7 @@ import type { TreeNode } from "@/lib/types/tree";
 function buildLevelOrderTree(values: Array<number | null>): TreeNode | null {
   if (values.length === 0 || values[0] === null) return null;
 
-  const nodes = values.map((value, index) =>
+  const nodes: Array<TreeNode | null> = values.map((value, index) =>
     value === null
       ? null
       : {
