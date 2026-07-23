@@ -160,6 +160,11 @@ import {
   trieSource,
   trieSteps,
 } from "@/lib/algorithms/data-structures/trie";
+import {
+  graphRepresentationMeta,
+  graphRepresentationSource,
+  graphRepresentationSteps,
+} from "@/lib/algorithms/data-structures/graphRepresentation";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -409,6 +414,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Trie expects a words input");
       }
       return trieSteps(input.values);
+    },
+  },
+  "graph-representation": {
+    meta: graphRepresentationMeta,
+    source: graphRepresentationSource,
+    steps: (input) => {
+      if (input.kind !== "graph") {
+        throw new Error("Graph Representation expects a graph input");
+      }
+      return graphRepresentationSteps(input);
     },
   },
 };

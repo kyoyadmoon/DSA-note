@@ -1,0 +1,92 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 10
+</div>
+
+# Graph Representation
+
+## 一句話定位
+
+Graph 用 vertices 表示實體、edges 表示關係。面試前先決定 directed／undirected、weighted／unweighted，再依圖的密度與操作需求選 adjacency list 或 adjacency matrix。
+
+<DataStructureRunner
+  slug="graph-representation"
+  initial={{
+    kind: "graph",
+    nodes: ["A", "B", "C", "D", "E"],
+    edges: [["A", "B"], ["A", "C"], ["B", "D"], ["C", "D"], ["D", "E"]],
+    start: "A",
+  }}
+/>
+
+## 建模前先問四件事
+
+1. Edge 有方向嗎？follow、prerequisite 通常有方向；friendship 通常沒有。
+2. Edge 有 weight 嗎？距離、成本、時間可能不同。
+3. 允許 self-loop 或平行邊嗎？這決定 Set 是否足夠。
+4. 圖可能不連通嗎？Traversal 從單一起點只會看到其 component。
+
+這些不是實作細節；答錯會直接改變演算法正確性。
+
+## 必須守住的 invariant
+
+```text
+每條 edge 的 endpoints 都是已存在的 vertices
+undirected (u, v) ⇒ v ∈ adj[u] 且 u ∈ adj[v]
+directed   (u, v) ⇒ v ∈ adj[u]，不自動推出 u ∈ adj[v]
+```
+
+無向圖若只更新一側，從不同起點走訪會得到不一致結果。
+
+## Adjacency List 與 Matrix
+
+| 操作／空間 | Adjacency List | Adjacency Matrix |
+|---|---:|---:|
+| 空間 | O(V + E) | O(V²) |
+| 列出 v 的鄰居 | O(deg(v)) | O(V) |
+| 檢查 (u, v) 是否存在 | O(deg(u))，用 Set 可 expected O(1) | O(1) |
+| 加 edge | O(1) / expected O(1) | O(1) |
+| 適用情況 | Sparse graph | Dense graph 或頻繁 edge lookup |
+
+大多數面試圖是 sparse，adjacency list 是常見預設，但仍應根據約束說明理由。
+
+## V、E 與 degree
+
+- V：vertex 數。
+- E：edge 數。
+- Undirected graph 的 degree sum = 2E。
+- Directed graph 分 in-degree 與 out-degree，兩者總和各為 E。
+- Traversal 使用 adjacency list 時是 O(V + E)，因為每個 vertex 與 edge 只處理常數次。
+
+## Matrix、Grid 也是 Graph
+
+島嶼、迷宮、棋盤題通常不需顯式建立 adjacency list；每個 cell 是 vertex，上下左右或八方向是隱含 edges。若 R × C grid 每格只看常數個方向，V = RC、E = O(RC)，BFS／DFS 仍是 O(RC)。
+
+## 常見資料清理邊界
+
+- 重複 edge：若題意是 simple graph，可用 Set 去重。
+- 未宣告 vertex：決定自動新增或拒絕，不能默默造成 undefined adjacency。
+- String node label：用 Map，而不是假設能直接當 Array index。
+- Weighted edge：adjacency entry 應保存 `{to, weight}`，不是只有 neighbor。
+
+## Retrieval check
+
+1. 無向 edge (A, B) 要更新幾個 adjacency lists？
+2. Dense graph 且頻繁檢查 edge 存在，哪種表示較直接？
+3. 為什麼 adjacency-list traversal 是 O(V + E)？
+4. Directed graph 的 in-degree 與 out-degree 分別代表什麼？
+
+答案應提到：兩側；matrix；每個 vertex／edge 常數次；進入與離開 vertex 的 edge 數。
+
+## 代表題型
+
+- [LeetCode 133 · Clone Graph](https://leetcode.com/problems/clone-graph/)
+- [LeetCode 200 · Number of Islands](https://leetcode.com/problems/number-of-islands/)
+- [LeetCode 207 · Course Schedule](https://leetcode.com/problems/course-schedule/)
+- [LeetCode 997 · Find the Town Judge](https://leetcode.com/problems/find-the-town-judge/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 9: Breadth-First Search](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Princeton Algorithms · Undirected Graphs](https://algs4.cs.princeton.edu/41graph/)

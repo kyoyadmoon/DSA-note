@@ -160,13 +160,43 @@ export type TrieView = {
   query?: string;
 };
 
+export type GraphNodeState = "idle" | "active" | "discovered" | "visited";
+export type GraphEdgeState = "idle" | "active" | "traversed";
+
+export type GraphNodeView = {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  state: GraphNodeState;
+};
+
+export type GraphEdgeView = {
+  id: string;
+  from: string;
+  to: string;
+  directed: boolean;
+  state: GraphEdgeState;
+};
+
+export type GraphView = {
+  kind: "graph";
+  mode: "representation" | "bfs" | "dfs";
+  nodes: GraphNodeView[];
+  edges: GraphEdgeView[];
+  adjacency: Array<{ node: string; neighbors: string[] }>;
+  frontier: string[];
+  visitOrder: string[];
+};
+
 export type DataStructureView =
   | DynamicArrayView
   | LinkedListView
   | LinearCollectionView
   | HashTableView
   | HeapView
-  | TrieView;
+  | TrieView
+  | GraphView;
 
 export type DataStructureStep = {
   view: DataStructureView;
