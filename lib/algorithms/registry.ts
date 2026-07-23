@@ -140,6 +140,11 @@ import {
   queueSource,
   queueSteps,
 } from "@/lib/algorithms/data-structures/queue";
+import {
+  dequeMeta,
+  dequeSource,
+  dequeSteps,
+} from "@/lib/algorithms/data-structures/deque";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -349,6 +354,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Queue expects a numbers input");
       }
       return queueSteps(input.values);
+    },
+  },
+  deque: {
+    meta: dequeMeta,
+    source: dequeSource,
+    steps: (input) => {
+      if (input.kind !== "numbers") {
+        throw new Error("Deque expects a numbers input");
+      }
+      return dequeSteps(input.values);
     },
   },
 };
