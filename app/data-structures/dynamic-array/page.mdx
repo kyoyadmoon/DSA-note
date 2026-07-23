@@ -1,0 +1,102 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 01
+</div>
+
+# Dynamic Array
+
+## 一句話定位
+
+Dynamic Array 是「**可以擴張容量的連續陣列**」。JavaScript 的 `Array`、Java 的 `ArrayList`、C++ 的 `vector` 都提供類似抽象；面試真正要理解的是 `size`、`capacity` 與 resize 的 amortized cost。
+
+<DataStructureRunner
+  slug="dynamic-array"
+  initial={{ kind: "numbers", values: [7, 3, 9, 4, 6, 8] }}
+/>
+
+## 必須守住的 invariant
+
+任何時間都要滿足：
+
+```text
+0 ≤ size ≤ capacity
+index 0 .. size - 1  是有效元素
+index size .. capacity - 1  是已配置但未使用的槽位
+```
+
+`size` 是使用者看到的元素數量；`capacity` 是底層 buffer 已經配置的槽位數。把兩者混在一起，是實作 dynamic array 最常見的錯誤。
+
+## 為什麼 index 是 O(1)
+
+元素連續存放，所以第 `i` 個元素的位置可以直接用起始位址加 offset 算出：
+
+```text
+address(i) = base + i × elementSize
+```
+
+計算不會隨元素數量增加，因此 lookup 與 update 都是 `O(1)`。這也是 array 相較 linked list 的核心優勢。
+
+## 為什麼 append 只有 amortized O(1)
+
+沒有滿時，append 只寫入 `data[size]`，是 `O(1)`。滿了則要配置兩倍大的 buffer，並複製現有 `n` 個元素，單次是 `O(n)`。
+
+但容量依序是 `2, 4, 8, 16, ...`。連續 append `n` 次時，所有 resize 的複製量最多是：
+
+```text
+2 + 4 + 8 + ... + n/2 < n
+```
+
+加上每次 append 本身的 `n` 次常數工作，總成本仍是 `O(n)`；平均到每次操作就是 amortized `O(1)`。這不是說每一次 append 都是 O(1)，而是說**任意長操作序列的平均成本有常數上界**。
+
+## 操作複雜度
+
+| 操作 | 時間 | 原因 |
+|---|---:|---|
+| `get(i)` / `set(i)` | O(1) | 位址可直接計算 |
+| 尾端 append | amortized O(1) | 偶爾需要 O(n) resize |
+| 尾端 pop | O(1) | 只縮小 size |
+| 中間 insert | O(n) | 右側元素要右移 |
+| 中間 delete | O(n) | 右側元素要左移 |
+| 搜尋未排序值 | O(n) | 最壞要逐一檢查 |
+| 空間 | O(n) | capacity 小於下一個倍增門檻 |
+
+## 面試常見追問
+
+### 為什麼通常乘 2？
+
+倍增能同時保證 amortized O(1) append 與常數比例的閒置空間。若每次只增加一格，連續 append 的搬移量會變成 `1 + 2 + ... + n = O(n²)`。
+
+### 刪除後要立刻縮容嗎？
+
+通常不要在 `size === capacity / 2` 時立刻縮，否則在門檻附近反覆 append/pop 會造成 resize thrashing。常見策略是等到 `size ≤ capacity / 4` 才把 capacity 減半，留下 hysteresis。
+
+### Array 和 Linked List 怎麼選？
+
+- 需要 random access、cache locality：優先 array。
+- 已經持有節點參照，且要 O(1) 插入/刪除：linked list 才可能有優勢。
+- 只知道 index 時，linked list 仍要 O(n) 走到該位置。
+
+## Retrieval check
+
+先不要往下找答案，口頭回答：
+
+1. `size = 5, capacity = 8` 時 append 一個元素要做幾次資料搬移？
+2. 為什麼一次 resize 是 O(n)，append 卻能寫成 amortized O(1)？
+3. 如果容量每次只加 10，連續 append n 次的總複製成本是什麼量級？
+4. 在 array 的 index 0 插入元素，哪一部分造成 O(n)？
+
+答案應包含：未滿時不搬移；倍增形成幾何級數；固定增量會導致平方級總搬移；既有元素必須整段位移。
+
+## 代表題型
+
+- [LeetCode 27 · Remove Element](https://leetcode.com/problems/remove-element/)
+- [LeetCode 88 · Merge Sorted Array](https://leetcode.com/problems/merge-sorted-array/)
+- [LeetCode 189 · Rotate Array](https://leetcode.com/problems/rotate-array/)
+- [LeetCode 380 · Insert Delete GetRandom O(1)](https://leetcode.com/problems/insert-delete-getrandom-o1/)
+
+## 可信來源
+
+- [MIT 6.006 · Spring 2020 syllabus](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/pages/syllabus/)
+- [MIT 6.006 · Lecture 2: Data Structures](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Introduction to Algorithms, 4th Edition](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/)
