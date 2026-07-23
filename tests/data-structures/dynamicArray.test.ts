@@ -40,8 +40,19 @@ describe("dynamicArraySteps", () => {
 
   it("uses independent snapshots", () => {
     const steps = dynamicArraySteps([1, 2, 3]);
-    const firstSlots = steps[0].view.buffers[0].slots;
-    const finalSlots = steps.at(-1)!.view.buffers[0].slots;
+    const firstView = steps[0].view;
+    const finalView = steps.at(-1)!.view;
+
+    expect(firstView.kind).toBe("dynamic-array");
+    expect(finalView.kind).toBe("dynamic-array");
+    if (
+      firstView.kind !== "dynamic-array" ||
+      finalView.kind !== "dynamic-array"
+    ) {
+      return;
+    }
+    const firstSlots = firstView.buffers[0].slots;
+    const finalSlots = finalView.buffers[0].slots;
 
     expect(firstSlots).not.toBe(finalSlots);
     expect(firstSlots.every((slot) => slot.value === null)).toBe(true);
@@ -55,8 +66,11 @@ describe("dynamicArraySteps", () => {
 
   it("handles an empty input with a terminal step", () => {
     const steps = dynamicArraySteps([]);
+    const final = steps.at(-1)!;
 
-    expect(steps.at(-1)?.phase).toBe("done");
-    expect(steps.at(-1)?.view.size).toBe(0);
+    expect(final.phase).toBe("done");
+    expect(final.view.kind).toBe("dynamic-array");
+    if (final.view.kind !== "dynamic-array") return;
+    expect(final.view.size).toBe(0);
   });
 });

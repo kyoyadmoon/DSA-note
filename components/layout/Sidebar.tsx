@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const DATA_STRUCTURE_LINKS = [
   { href: "/data-structures/dynamic-array", label: "Dynamic Array" },
+  { href: "/data-structures/singly-linked-list", label: "Singly Linked List" },
 ] as const;
 
 const TREE_LINKS = [

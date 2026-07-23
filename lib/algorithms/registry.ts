@@ -120,6 +120,11 @@ import {
   dynamicArraySource,
   dynamicArraySteps,
 } from "@/lib/algorithms/data-structures/dynamicArray";
+import {
+  singlyLinkedListMeta,
+  singlyLinkedListSource,
+  singlyLinkedListSteps,
+} from "@/lib/algorithms/data-structures/singlyLinkedList";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -289,6 +294,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Dynamic Array expects a numbers input");
       }
       return dynamicArraySteps(input.values);
+    },
+  },
+  "singly-linked-list": {
+    meta: singlyLinkedListMeta,
+    source: singlyLinkedListSource,
+    steps: (input) => {
+      if (input.kind !== "numbers") {
+        throw new Error("Singly Linked List expects a numbers input");
+      }
+      return singlyLinkedListSteps(input.values);
     },
   },
 };

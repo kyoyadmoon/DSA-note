@@ -46,7 +46,31 @@ export type DynamicArrayView = {
   pointer?: { index: number; label: string };
 };
 
-export type DataStructureView = DynamicArrayView;
+export type LinkedListNodeState =
+  | "idle"
+  | "active"
+  | "visited"
+  | "new"
+  | "removing";
+
+export type LinkedListNodeView = {
+  id: string;
+  value: number;
+  nextId: string | null;
+  prevId?: string | null;
+  state: LinkedListNodeState;
+};
+
+export type LinkedListView = {
+  kind: "linked-list";
+  nodes: LinkedListNodeView[];
+  headId: string | null;
+  tailId: string | null;
+  activeLink?: { from: string; to: string };
+  doubly: boolean;
+};
+
+export type DataStructureView = DynamicArrayView | LinkedListView;
 
 export type DataStructureStep = {
   view: DataStructureView;
