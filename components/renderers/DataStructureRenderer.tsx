@@ -14,6 +14,9 @@ import type {
   LinkedListNodeState,
   LinkedListView,
   StructureSlotState,
+  TrieNodeState,
+  TrieNodeView,
+  TrieView,
 } from "@/lib/types/dataStructure";
 
 type Props = {
@@ -54,7 +57,81 @@ export function DataStructureRenderer({ step }: Props) {
       return <HashTableRenderer view={step.view} />;
     case "binary-heap":
       return <BinaryHeapRenderer view={step.view} />;
+    case "trie":
+      return <TrieRenderer view={step.view} />;
   }
+}
+
+function trieNodeColor(state: TrieNodeState): string {
+  switch (state) {
+    case "active":
+      return "var(--color-bar-compare)";
+    case "visited":
+      return "var(--color-bar-active)";
+    case "new":
+    case "found":
+      return "var(--color-bar-sorted)";
+    default:
+      return "var(--color-bar-idle)";
+  }
+}
+
+function TrieRenderer({ view }: { view: TrieView }) {
+  const byId = new Map(view.nodes.map((node) => [node.id, node]));
+  const root = byId.get("trie-root");
+
+  function Branch({ node }: { node: TrieNodeView }) {
+    const children = node.childIds
+      .map((id) => byId.get(id))
+      .filter((child): child is TrieNodeView => child !== undefined);
+    return (
+      <div className="flex flex-col items-center">
+        <motion.div
+          layout
+          animate={{
+            backgroundColor: trieNodeColor(node.state),
+            scale: node.state === "idle" ? 1 : 1.08,
+          }}
+          className="relative flex h-12 min-w-12 items-center justify-center rounded-full px-2 font-mono text-sm font-semibold text-background shadow-md"
+        >
+          {node.character || "root"}
+          {node.terminal && (
+            <span
+              className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-surface bg-accent"
+              aria-label="word ending"
+            />
+          )}
+        </motion.div>
+        <span className="mt-1 font-mono text-[9px] text-muted">
+          {node.path || "∅"}
+        </span>
+        {children.length > 0 && (
+          <>
+            <div className="h-4 w-px bg-border" />
+            <div className="flex items-start gap-5 border-t border-border pt-3">
+              {children.map((child) => (
+                <Branch key={child.id} node={child} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative flex h-full items-start justify-center overflow-auto px-8 py-8">
+      {root && <Branch node={root} />}
+      <div className="absolute left-5 top-4 font-mono text-xs text-muted">
+        words {view.wordCount}
+      </div>
+      {view.query !== undefined && (
+        <div className="absolute bottom-4 right-5 font-mono text-xs text-accent">
+          query {JSON.stringify(view.query)}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function heapNodeColor(state: HeapNodeState): string {

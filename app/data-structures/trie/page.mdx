@@ -1,0 +1,86 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 09
+</div>
+
+# Trie / Prefix Tree
+
+## 一句話定位
+
+Trie 把字串拆成字元路徑，共享相同 prefix。查詢時間取決於 key 長度 L，而不是已儲存單字數量；代價通常是較高的節點與 child mapping 空間。
+
+<DataStructureRunner
+  slug="trie"
+  initial={{ kind: "words", values: ["car", "cat", "dog", "dot"] }}
+/>
+
+## 必須守住的 invariant
+
+```text
+root-to-node 路徑上的字元串接，等於該 node 代表的 prefix
+同一 node 對同一字元最多只有一個 child
+完整 word 的最後節點必須 terminal = true
+```
+
+最後一條不能省略。插入 `car` 後，`c` 與 `ca` 都是合法 prefix，但不是已插入的完整 word。
+
+## Search 與 StartsWith 的差異
+
+```text
+search("car")      = 路徑存在 && 最後節點 terminal
+startsWith("ca")   = 路徑存在
+```
+
+兩者都沿每個字元走一次，所以時間是 O(L)。如果 child 使用固定 alphabet array，取下一個 child 是 O(1) 且常數小；若使用 Map，可節省稀疏 alphabet 的空間，但有 hashing 開銷。
+
+## 複雜度與空間
+
+| 操作 | 時間 |
+|---|---:|
+| Insert 長度 L 的 word | O(L) |
+| Search | O(L) |
+| StartsWith | O(L) |
+| 列出 prefix 下 R 個結果 | O(L + 輸出與走訪成本) |
+
+最壞空間與所有字串總字元數成正比；共享 prefix 能減少節點，但每節點的 object、Map 或固定 child array 也有額外成本。不能只比較 Big-O 就斷言 Trie 一定比 Hash Table 省空間。
+
+## Trie 與 Hash Table
+
+| 需求 | Trie | Hash Table |
+|---|---:|---:|
+| Exact lookup | O(L) | expected O(L)，hash 也需讀 key |
+| Prefix lookup | 直接 O(L) 到 prefix node | 無自然 prefix 結構 |
+| Lexicographic enumeration | 依 child 順序 DFS | 需另排序 |
+| 記憶體常數 | 常較高 | 視實作而定 |
+
+Hash Table 適合 exact membership；Trie 的優勢是 prefix 與字典序結構。
+
+## 常見變形
+
+- Autocomplete：走到 prefix node，再 DFS / best-first 列候選。
+- Word Search II：把字典建成 Trie，在 board DFS 時提早剪枝。
+- Bitwise Trie：每層是 bit 0/1，用於 maximum XOR。
+- Compressed Trie / Radix Tree：把只有一個 child 的連續路徑壓成一段字串。
+
+## Retrieval check
+
+1. 插入 `car` 後，為什麼 `search("ca")` 是 false？
+2. Trie 查詢 O(L) 中的 L 是什麼？
+3. Autocomplete 找到 prefix node 後還需要什麼成本？
+4. 固定 child array 與 Map 的主要取捨是什麼？
+
+答案應提到：缺少 terminal marker；query 長度；走訪／輸出候選；速度與稀疏空間。
+
+## 代表題型
+
+- [LeetCode 208 · Implement Trie](https://leetcode.com/problems/implement-trie-prefix-tree/)
+- [LeetCode 211 · Design Add and Search Words](https://leetcode.com/problems/design-add-and-search-words-data-structure/)
+- [LeetCode 212 · Word Search II](https://leetcode.com/problems/word-search-ii/)
+- [LeetCode 648 · Replace Words](https://leetcode.com/problems/replace-words/)
+- [LeetCode 1268 · Search Suggestions System](https://leetcode.com/problems/search-suggestions-system/)
+
+## 可信來源
+
+- [Princeton Algorithms · Tries](https://algs4.cs.princeton.edu/52trie/)
+- [Open Data Structures · Binary Trie](https://opendatastructures.org/ods-python/13_1_BinaryTrie_digital_sea.html)
