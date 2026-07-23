@@ -13,6 +13,8 @@ import type {
   GraphView,
   LinearCollectionItemState,
   LinearCollectionView,
+  MonotonicItemState,
+  MonotonicStackView,
   LinkedListNodeState,
   LinkedListView,
   StructureSlotState,
@@ -63,7 +65,79 @@ export function DataStructureRenderer({ step }: Props) {
       return <TrieRenderer view={step.view} />;
     case "graph":
       return <GraphRenderer view={step.view} />;
+    case "monotonic-stack":
+      return <MonotonicStackRenderer view={step.view} />;
   }
+}
+
+function monotonicItemColor(state: MonotonicItemState): string {
+  switch (state) {
+    case "current":
+      return "var(--color-bar-compare)";
+    case "stacked":
+      return "var(--color-bar-active)";
+    case "resolved":
+      return "var(--color-bar-sorted)";
+    default:
+      return "var(--color-bar-idle)";
+  }
+}
+
+function MonotonicStackRenderer({ view }: { view: MonotonicStackView }) {
+  return (
+    <div className="flex h-full flex-col gap-5 overflow-auto px-6 py-8">
+      <div>
+        <div className="mb-2 text-[10px] uppercase tracking-wider text-muted">input</div>
+        <div className="flex min-w-max justify-center gap-1.5">
+          {view.values.map((item) => (
+            <div key={item.index} className="flex flex-col items-center">
+              <motion.div
+                animate={{
+                  backgroundColor: monotonicItemColor(item.state),
+                  scale: item.state === "idle" ? 1 : 1.06,
+                }}
+                className="flex h-12 w-12 items-center justify-center rounded-md font-mono font-semibold text-background"
+              >
+                {item.value}
+              </motion.div>
+              <span className="mt-1 font-mono text-[9px] text-muted">{item.index}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-5">
+        <div className="rounded-lg border border-border bg-surface-raised/30 p-3">
+          <div className="mb-2 text-[10px] uppercase tracking-wider text-muted">decreasing stack · indices</div>
+          <div className="flex min-h-20 items-center gap-2 overflow-auto">
+            {view.stack.length === 0 ? (
+              <span className="font-mono text-xs text-muted">empty</span>
+            ) : (
+              view.stack.map((index) => (
+                <div key={index} className="rounded-md bg-[var(--color-bar-active)] px-3 py-2 text-center font-mono text-sm font-semibold text-background">
+                  <div>{index}</div>
+                  <div className="text-[9px] opacity-70">v={view.values[index].value}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <div className="rounded-lg border border-border bg-surface-raised/30 p-3">
+          <div className="mb-2 text-[10px] uppercase tracking-wider text-muted">answer</div>
+          <div className="flex min-h-20 items-center gap-2 overflow-auto">
+            {view.answers.map((answer, index) => (
+              <div key={index} className="flex flex-col items-center font-mono">
+                <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border text-sm text-foreground">
+                  {answer ?? "?"}
+                </div>
+                <span className="mt-1 text-[9px] text-muted">{index}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function graphNodeColor(state: GraphNodeState): string {
