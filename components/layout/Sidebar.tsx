@@ -7,6 +7,7 @@ const DATA_STRUCTURE_LINKS = [
   { href: "/data-structures/dynamic-array", label: "Dynamic Array" },
   { href: "/data-structures/singly-linked-list", label: "Singly Linked List" },
   { href: "/data-structures/doubly-linked-list", label: "Doubly Linked List" },
+  { href: "/data-structures/stack", label: "Stack" },
 ] as const;
 
 const TREE_LINKS = [

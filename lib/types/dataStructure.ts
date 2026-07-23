@@ -70,7 +70,34 @@ export type LinkedListView = {
   doubly: boolean;
 };
 
-export type DataStructureView = DynamicArrayView | LinkedListView;
+export type LinearCollectionMode = "stack" | "queue" | "deque";
+
+export type LinearCollectionItemState =
+  | "idle"
+  | "active"
+  | "new"
+  | "removing";
+
+export type LinearCollectionItemView = {
+  id: string;
+  value: number;
+  state: LinearCollectionItemState;
+};
+
+export type LinearCollectionView = {
+  kind: "linear-collection";
+  mode: LinearCollectionMode;
+  items: LinearCollectionItemView[];
+  topId?: string;
+  frontId?: string;
+  backId?: string;
+  output: number[];
+};
+
+export type DataStructureView =
+  | DynamicArrayView
+  | LinkedListView
+  | LinearCollectionView;
 
 export type DataStructureStep = {
   view: DataStructureView;
