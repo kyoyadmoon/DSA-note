@@ -12,6 +12,7 @@ const DATA_STRUCTURE_LINKS = [
   { href: "/data-structures/queue", label: "Queue" },
   { href: "/data-structures/deque", label: "Deque" },
   { href: "/data-structures/hash-table", label: "Hash Table" },
+  { href: "/data-structures/lru-cache", label: "LRU Cache" },
   { href: "/data-structures/binary-heap", label: "Binary Heap / Priority Queue" },
   { href: "/data-structures/trie", label: "Trie / Prefix Tree" },
   { href: "/data-structures/graph-representation", label: "Graph Representation" },

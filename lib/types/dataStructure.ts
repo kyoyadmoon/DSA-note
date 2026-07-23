@@ -204,6 +204,22 @@ export type MonotonicStackView = {
   answers: Array<number | null>;
 };
 
+export type LruEntryState = "idle" | "active" | "new" | "evicting";
+
+export type LruCacheView = {
+  kind: "lru-cache";
+  capacity: number;
+  entries: Array<{
+    key: string;
+    state: LruEntryState;
+  }>;
+  mapKeys: string[];
+  hits: number;
+  misses: number;
+  evicted: string[];
+  request?: string;
+};
+
 export type DataStructureView =
   | DynamicArrayView
   | LinkedListView
@@ -212,7 +228,8 @@ export type DataStructureView =
   | HeapView
   | TrieView
   | GraphView
-  | MonotonicStackView;
+  | MonotonicStackView
+  | LruCacheView;
 
 export type DataStructureStep = {
   view: DataStructureView;
