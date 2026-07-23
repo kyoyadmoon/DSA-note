@@ -189,6 +189,19 @@ export type GraphView = {
   visitOrder: string[];
 };
 
+export type MonotonicItemState = "idle" | "current" | "stacked" | "resolved";
+
+export type MonotonicStackView = {
+  kind: "monotonic-stack";
+  values: Array<{
+    index: number;
+    value: number;
+    state: MonotonicItemState;
+  }>;
+  stack: number[];
+  answers: Array<number | null>;
+};
+
 export type DataStructureView =
   | DynamicArrayView
   | LinkedListView
@@ -196,7 +209,8 @@ export type DataStructureView =
   | HashTableView
   | HeapView
   | TrieView
-  | GraphView;
+  | GraphView
+  | MonotonicStackView;
 
 export type DataStructureStep = {
   view: DataStructureView;

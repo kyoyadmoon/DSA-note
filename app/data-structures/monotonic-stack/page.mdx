@@ -1,0 +1,94 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure Pattern · Monotonic Stack
+</div>
+
+# Monotonic Stack
+
+## 一句話定位
+
+Monotonic Stack 讓 Stack 中的候選值保持單調順序，用新元素一次淘汰不可能再成為答案的舊候選。它常把「向左／右找第一個較大／較小值」從 O(n²) 降到 O(n)。
+
+<DataStructureRunner
+  slug="monotonic-stack"
+  initial={{ kind: "numbers", values: [2, 1, 2, 4, 3] }}
+/>
+
+## 本章問題：Next Greater Element
+
+對每個 index i，找右側第一個嚴格大於 `values[i]` 的值；不存在則回傳 -1。
+
+互動示範保存「尚未找到答案的 indices」。掃描到新值 x 時，持續 pop 所有 `< x` 的 Stack top，因為 x 正是它們右側第一個更大值；最後再 push 目前 index。
+
+## 必須守住的 invariant
+
+```text
+Stack 由底到頂的 values 維持 non-increasing
+Stack 內每個 index 尚未找到右側第一個 greater value
+被 pop 的 index 當下就得到最早可能的答案
+```
+
+為什麼是「第一個」？若更早出現過一個更大值，該 index 當時就已被 pop，不可能留到現在。
+
+## 為什麼不是 O(n²)
+
+程式有 for 包 while，但不能只看巢狀語法：
+
+- 每個 index 恰好 push 一次。
+- 每個 index 最多 pop 一次。
+- 全部 while iterations 加總最多 n 次。
+
+因此總時間 O(n)，額外空間 O(n)。這是 aggregate amortized analysis 的典型例子。
+
+## 四種方向怎麼選
+
+| 題目 | 掃描方向 | Stack 保持 |
+|---|---|---|
+| 右側第一個 greater | 左 → 右 | 遞減候選，讓新值解決舊 index |
+| 右側第一個 smaller | 左 → 右 | 遞增候選 |
+| 左側第一個 greater | 左 → 右 | 遞減，先清理後讀 top |
+| 左側第一個 smaller | 左 → 右 | 遞增，先清理後讀 top |
+
+表格是常見模板，但 strict／non-strict 比較符號仍要依題意決定。duplicates 是否能互相解決，常是錯誤來源。
+
+## 為什麼通常保存 index
+
+只保存 value 會失去：
+
+- 答案要寫回哪個位置。
+- 與目前位置的距離，例如 Daily Temperatures。
+- 該候選是否已離開 window。
+- 重複 value 的不同 occurrence。
+
+除非題目只要 value 且沒有上述需求，保存 index 通常更通用。
+
+## 常見題型變形
+
+- Daily Temperatures：答案是 index distance。
+- Largest Rectangle in Histogram：遞增 Stack 找每根 bar 左右第一個更矮邊界。
+- Trapping Rain Water：pop valley 後用左右界計算水量。
+- Circular array：掃描 2n 次，但只在第一輪 push index。
+- Remove K Digits：單調 Stack + greedy，較大前位數會被較小新位數淘汰。
+
+## Retrieval check
+
+1. 為什麼 for + while 的總時間仍是 O(n)？
+2. Next Greater 中相等值是否應 pop？
+3. Daily Temperatures 為什麼保存 index？
+4. 最後留在 Stack 的 indices 代表什麼？
+
+答案應提到：每個 index 最多進出一次；strict greater 時不 pop 相等值；需要算距離；右側不存在答案。
+
+## 代表題型
+
+- [LeetCode 496 · Next Greater Element I](https://leetcode.com/problems/next-greater-element-i/)
+- [LeetCode 739 · Daily Temperatures](https://leetcode.com/problems/daily-temperatures/)
+- [LeetCode 84 · Largest Rectangle in Histogram](https://leetcode.com/problems/largest-rectangle-in-histogram/)
+- [LeetCode 42 · Trapping Rain Water](https://leetcode.com/problems/trapping-rain-water/)
+- [LeetCode 402 · Remove K Digits](https://leetcode.com/problems/remove-k-digits/)
+
+## 可信來源
+
+- [LeetCode · Monotonic Stack Guide](https://leetcode.com/discuss/study-guide/2347639/a-comprehensive-guide-and-template-for-monotonic-stack-based-problems)
+- [Princeton Algorithms · Stacks and Queues](https://algs4.cs.princeton.edu/13stacks/)

@@ -175,6 +175,11 @@ import {
   dfsSource,
   dfsSteps,
 } from "@/lib/algorithms/graph/dfs";
+import {
+  monotonicStackMeta,
+  monotonicStackSource,
+  monotonicStackSteps,
+} from "@/lib/algorithms/data-structures/monotonicStack";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -454,6 +459,16 @@ export const dataStructureRegistry: Record<
         throw new Error("DFS expects a graph input");
       }
       return dfsSteps(input);
+    },
+  },
+  "monotonic-stack": {
+    meta: monotonicStackMeta,
+    source: monotonicStackSource,
+    steps: (input) => {
+      if (input.kind !== "numbers") {
+        throw new Error("Monotonic Stack expects a numbers input");
+      }
+      return monotonicStackSteps(input.values);
     },
   },
 };

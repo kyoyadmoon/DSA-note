@@ -8,6 +8,7 @@ const DATA_STRUCTURE_LINKS = [
   { href: "/data-structures/singly-linked-list", label: "Singly Linked List" },
   { href: "/data-structures/doubly-linked-list", label: "Doubly Linked List" },
   { href: "/data-structures/stack", label: "Stack" },
+  { href: "/data-structures/monotonic-stack", label: "Monotonic Stack" },
   { href: "/data-structures/queue", label: "Queue" },
   { href: "/data-structures/deque", label: "Deque" },
   { href: "/data-structures/hash-table", label: "Hash Table" },
