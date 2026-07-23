@@ -64,7 +64,7 @@ function LinkedListRenderer({ view }: { view: LinkedListView }) {
   if (view.nodes.length === 0) {
     return (
       <div className="flex h-full items-center justify-center font-mono text-sm text-muted">
-        head → null
+        head / tail → null
       </div>
     );
   }
@@ -76,8 +76,10 @@ function LinkedListRenderer({ view }: { view: LinkedListView }) {
           const next = view.nodes[index + 1];
           const activeLink =
             next &&
-            view.activeLink?.from === node.id &&
-            view.activeLink.to === next.id;
+            ((view.activeLink?.from === node.id &&
+              view.activeLink.to === next.id) ||
+              (view.activeLink?.from === next.id &&
+                view.activeLink.to === node.id));
           return (
             <div key={node.id} className="flex items-center">
               <div className="relative flex flex-col items-center">
@@ -100,8 +102,11 @@ function LinkedListRenderer({ view }: { view: LinkedListView }) {
                 >
                   {node.value}
                 </motion.div>
-                <div className="mt-2 font-mono text-[10px] text-muted">
-                  {node.nextId ? `next: ${node.nextId}` : "next: null"}
+                <div className="mt-2 text-center font-mono text-[10px] leading-4 text-muted">
+                  {view.doubly && (
+                    <div>{node.prevId ? `prev: ${node.prevId}` : "prev: null"}</div>
+                  )}
+                  <div>{node.nextId ? `next: ${node.nextId}` : "next: null"}</div>
                 </div>
               </div>
               {next && node.nextId === next.id && (
@@ -113,9 +118,13 @@ function LinkedListRenderer({ view }: { view: LinkedListView }) {
                     scale: activeLink ? 1.15 : 1,
                   }}
                   className="mx-3 mb-1 font-mono text-2xl"
-                  aria-label={`${node.value} points to ${next.value}`}
+                  aria-label={
+                    view.doubly
+                      ? `${node.value} and ${next.value} point to each other`
+                      : `${node.value} points to ${next.value}`
+                  }
                 >
-                  →
+                  {view.doubly ? "⇄" : "→"}
                 </motion.div>
               )}
             </div>
