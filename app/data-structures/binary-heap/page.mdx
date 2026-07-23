@@ -1,0 +1,100 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 08
+</div>
+
+# Binary Heap / Priority Queue
+
+## 一句話定位
+
+Binary Heap 用 complete binary tree 的形狀與局部 heap-order invariant，讓最高優先級元素固定在 root。Priority Queue 是介面；Binary Heap 是常見實作。
+
+<DataStructureRunner
+  slug="binary-heap"
+  initial={{ kind: "numbers", values: [9, 4, 7, 1, 6] }}
+/>
+
+## 必須守住的兩個 invariant
+
+```text
+Shape: 節點按層由左到右填滿，是 complete binary tree
+Min-heap order: 每個 parent.value <= 其 children.value
+```
+
+Heap order 只限制 parent 與 child，不代表同一層已排序，也不保證左 child 小於右 child。能確定的是 root 為全域最小值。
+
+## Array 與 Tree 的 index 對應
+
+對 0-based array 的 index `i`：
+
+```text
+parent(i) = floor((i - 1) / 2)
+left(i)   = 2i + 1
+right(i)  = 2i + 2
+```
+
+因為 shape 永遠 complete，不需要真的保存 node pointer；連續 Array 也有較好的 cache locality。
+
+## Insert 與 Extract-Min
+
+Insert：
+
+1. 把新值放到 array 尾端，維持 complete shape。
+2. 若小於 parent，向上交換 bubble-up。
+3. Tree 高度 O(log n)，所以最多交換 O(log n) 次。
+
+Extract-Min：
+
+1. 保存 root 作為答案。
+2. 把最後一個值移到 root，刪除尾端，維持 complete shape。
+3. 和兩個 children 中較小者交換 bubble-down，直到 invariant 恢復。
+
+只和任意一個 child 交換不夠；Min Heap 必須選較小 child，否則可能立即違反另一側關係。
+
+## 為什麼 Build Heap 是 O(n)
+
+逐個 insert 的上界是 O(n log n)，但 bottom-up heapify 從最後一個非 leaf 往 root 做 bubble-down，只需 O(n)。直覺是：大多數節點靠近 leaf，可下沉的距離很短；只有少數靠近 root 的節點能走很多層。
+
+面試若要求證明，可按節點高度加總：高度 h 的節點數約為 `n / 2^(h+1)`，總工作形成收斂級數 O(n)。
+
+## Priority Queue 的典型用途
+
+- Top K：維持大小 k 的 Min Heap，時間 O(n log k)。
+- K-way merge：Heap 中只放每個序列目前最小候選。
+- Dijkstra / Prim：每次取出目前最小 tentative distance / edge。
+- Scheduler：依 priority 或 deadline 取下一個工作。
+- Streaming median：Max Heap 保存較小半部、Min Heap 保存較大半部。
+
+## Heap 與其他結構
+
+| 需求 | Heap | Balanced BST | Sorted Array |
+|---|---:|---:|---:|
+| 看 min | O(1) | O(log n) 或保存指標 O(1) | O(1) |
+| 插入 | O(log n) | O(log n) | O(n) |
+| 搜尋任意 value | O(n) | O(log n) | O(log n) |
+| 反覆取 min | O(log n) | O(log n) | 視移除端而定 |
+
+Heap 的強項是極值，不是任意搜尋。
+
+## Retrieval check
+
+1. Min Heap 能否保證整個 array 已排序？
+2. index i 的兩個 child index 是什麼？
+3. Extract-Min 為什麼要和較小 child 交換？
+4. Bottom-up build heap 為什麼是 O(n)？
+
+答案應提到：只能保證 parent ≤ child；`2i+1`、`2i+2`；同時維持兩側關係；多數節點接近 leaf。
+
+## 代表題型
+
+- [LeetCode 215 · Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/)
+- [LeetCode 23 · Merge k Sorted Lists](https://leetcode.com/problems/merge-k-sorted-lists/)
+- [LeetCode 295 · Find Median from Data Stream](https://leetcode.com/problems/find-median-from-data-stream/)
+- [LeetCode 347 · Top K Frequent Elements](https://leetcode.com/problems/top-k-frequent-elements/)
+- [LeetCode 973 · K Closest Points to Origin](https://leetcode.com/problems/k-closest-points-to-origin/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 8: Binary Heaps](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Princeton Algorithms · Priority Queues](https://algs4.cs.princeton.edu/24pq/)
