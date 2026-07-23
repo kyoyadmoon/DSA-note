@@ -120,11 +120,33 @@ export type HashTableView = {
   hashLabel?: string;
 };
 
+export type HeapNodeState =
+  | "idle"
+  | "active"
+  | "compare"
+  | "swap"
+  | "new";
+
+export type HeapNodeView = {
+  id: string;
+  index: number;
+  value: number;
+  state: HeapNodeState;
+};
+
+export type HeapView = {
+  kind: "binary-heap";
+  heapType: "min" | "max";
+  nodes: HeapNodeView[];
+  output: number[];
+};
+
 export type DataStructureView =
   | DynamicArrayView
   | LinkedListView
   | LinearCollectionView
-  | HashTableView;
+  | HashTableView
+  | HeapView;
 
 export type DataStructureStep = {
   view: DataStructureView;

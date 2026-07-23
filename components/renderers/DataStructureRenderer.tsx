@@ -7,6 +7,8 @@ import type {
   DynamicArrayView,
   HashEntryState,
   HashTableView,
+  HeapNodeState,
+  HeapView,
   LinearCollectionItemState,
   LinearCollectionView,
   LinkedListNodeState,
@@ -50,7 +52,81 @@ export function DataStructureRenderer({ step }: Props) {
       return <LinearCollectionRenderer view={step.view} />;
     case "hash-table":
       return <HashTableRenderer view={step.view} />;
+    case "binary-heap":
+      return <BinaryHeapRenderer view={step.view} />;
   }
+}
+
+function heapNodeColor(state: HeapNodeState): string {
+  switch (state) {
+    case "active":
+      return "var(--color-bar-active)";
+    case "compare":
+      return "var(--color-bar-compare)";
+    case "swap":
+      return "var(--color-bar-swap)";
+    case "new":
+      return "var(--color-bar-sorted)";
+    default:
+      return "var(--color-bar-idle)";
+  }
+}
+
+function BinaryHeapRenderer({ view }: { view: HeapView }) {
+  const levelCount = view.nodes.length
+    ? Math.floor(Math.log2(view.nodes.length)) + 1
+    : 0;
+
+  return (
+    <div className="relative flex h-full flex-col justify-center gap-5 overflow-auto px-6 py-8">
+      {view.nodes.length === 0 ? (
+        <div className="text-center font-mono text-sm text-muted">empty heap</div>
+      ) : (
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
+          {Array.from({ length: levelCount }, (_, level) => {
+            const start = 2 ** level - 1;
+            const end = Math.min(2 ** (level + 1) - 1, view.nodes.length);
+            return (
+              <div key={level} className="flex justify-around gap-3">
+                {view.nodes.slice(start, end).map((node) => (
+                  <motion.div
+                    key={node.id}
+                    layout
+                    animate={{
+                      backgroundColor: heapNodeColor(node.state),
+                      scale: node.state === "idle" ? 1 : 1.08,
+                    }}
+                    className="flex h-12 w-12 flex-col items-center justify-center rounded-full font-mono font-semibold text-background shadow-md"
+                  >
+                    <span>{node.value}</span>
+                    <span className="text-[8px] opacity-70">i={node.index}</span>
+                  </motion.div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mx-auto flex min-w-max gap-1.5 border-t border-border pt-4">
+        {view.nodes.map((node) => (
+          <div key={node.id} className="flex flex-col items-center">
+            <motion.div
+              layout
+              animate={{ backgroundColor: heapNodeColor(node.state) }}
+              className="flex h-10 w-12 items-center justify-center rounded-md font-mono text-sm font-semibold text-background"
+            >
+              {node.value}
+            </motion.div>
+            <span className="mt-1 font-mono text-[9px] text-muted">{node.index}</span>
+          </div>
+        ))}
+      </div>
+      <div className="absolute bottom-4 right-5 font-mono text-xs text-muted">
+        output [{view.output.join(", ")}]
+      </div>
+    </div>
+  );
 }
 
 function hashEntryColor(state: HashEntryState): string {
