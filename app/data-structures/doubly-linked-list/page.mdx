@@ -1,0 +1,78 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 03
+</div>
+
+# Doubly Linked List
+
+## 一句話定位
+
+Doubly Linked List 的每個節點同時保存 `next` 與 `prev`，因此能雙向走訪，也能在已知節點時直接取得前驅並以 O(1) 刪除；代價是更多空間與更多必須同步維護的指標。
+
+<DataStructureRunner
+  slug="doubly-linked-list"
+  initial={{ kind: "numbers", values: [4, 8, 15, 16] }}
+/>
+
+## 必須守住的 invariant
+
+```text
+head === null  ⇔  tail === null
+head !== null  ⇒  head.prev === null
+tail !== null  ⇒  tail.next === null
+node.next !== null  ⇒  node.next.prev === node
+node.prev !== null  ⇒  node.prev.next === node
+```
+
+最後兩條是核心：每條相鄰關係必須在兩個方向互相對應。只更新其中一側，正向走訪可能看似正常，反向走訪卻會讀到舊節點。
+
+## 與 Singly Linked List 的取捨
+
+| 操作 | Singly | Doubly |
+|---|---:|---:|
+| 從 head 正向走訪 | O(n) | O(n) |
+| 從 tail 反向走訪 | 不直接支援 | O(n) |
+| 已知節點，刪除該節點 | 通常還需要 predecessor | O(1) |
+| 每節點額外指標 | 1 個 `next` | `next` + `prev` |
+| 實作出錯面 | 較少 | 較多 |
+
+兩者依 index 存取仍是 O(n)。加入 `prev` 不會產生 random access，只是讓鄰接關係可雙向移動。
+
+## O(1) 刪除的完整前提
+
+題目若直接給定要刪除的 node reference，可立即讀到 `node.prev` 與 `node.next`，再各改一條指標，因此是 O(1)。如果題目只給 value 或 index，仍需先用 O(n) 找到節點。
+
+刪除時需要處理：
+
+1. 有 previous：令 `previous.next = next`；否則更新 head。
+2. 有 next：令 `next.prev = previous`；否則更新 tail。
+3. 視需求把被刪節點的兩個指標設為 null，避免保留非預期關係。
+
+## 常見面試用途
+
+- LRU Cache：hash map 找節點，doubly linked list 維護最近使用順序。
+- Browser history：同時支援 back 與 forward。
+- 可從兩端操作的 deque 實作。
+- 需要刪除已知節點、又不能線性找 predecessor 的題目。
+
+## Retrieval check
+
+1. 為什麼 doubly linked list 依 index 存取仍是 O(n)？
+2. 刪除已知節點時，最多要改哪四個外部狀態？
+3. 只更新 `previous.next`、漏掉 `next.prev`，哪個方向的走訪會出錯？
+4. 和 singly linked list 相比，主要空間代價是什麼？
+
+答案應提到：節點仍不連續；previous.next、next.prev、head、tail；反向走訪；每個節點多一個指標。
+
+## 代表題型
+
+- [LeetCode 146 · LRU Cache](https://leetcode.com/problems/lru-cache/)
+- [LeetCode 430 · Flatten a Multilevel Doubly Linked List](https://leetcode.com/problems/flatten-a-multilevel-doubly-linked-list/)
+- [LeetCode 707 · Design Linked List](https://leetcode.com/problems/design-linked-list/)
+- [LeetCode 1472 · Design Browser History](https://leetcode.com/problems/design-browser-history/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 2: Data Structures](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Open Data Structures · Doubly-Linked List](https://opendatastructures.org/ods-python/3_2_Doubly_Linked_List.html)

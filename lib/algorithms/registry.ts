@@ -125,6 +125,11 @@ import {
   singlyLinkedListSource,
   singlyLinkedListSteps,
 } from "@/lib/algorithms/data-structures/singlyLinkedList";
+import {
+  doublyLinkedListMeta,
+  doublyLinkedListSource,
+  doublyLinkedListSteps,
+} from "@/lib/algorithms/data-structures/doublyLinkedList";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -304,6 +309,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Singly Linked List expects a numbers input");
       }
       return singlyLinkedListSteps(input.values);
+    },
+  },
+  "doubly-linked-list": {
+    meta: doublyLinkedListMeta,
+    source: doublyLinkedListSource,
+    steps: (input) => {
+      if (input.kind !== "numbers") {
+        throw new Error("Doubly Linked List expects a numbers input");
+      }
+      return doublyLinkedListSteps(input.values);
     },
   },
 };
