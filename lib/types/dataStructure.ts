@@ -76,7 +76,8 @@ export type LinearCollectionItemState =
   | "idle"
   | "active"
   | "new"
-  | "removing";
+  | "removing"
+  | "consumed";
 
 export type LinearCollectionItemView = {
   id: string;
@@ -91,6 +92,7 @@ export type LinearCollectionView = {
   topId?: string;
   frontId?: string;
   backId?: string;
+  headIndex?: number;
   output: number[];
 };
 
