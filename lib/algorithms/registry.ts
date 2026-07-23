@@ -185,6 +185,11 @@ import {
   topologicalSortSource,
   topologicalSortSteps,
 } from "@/lib/algorithms/graph/topologicalSort";
+import {
+  dijkstraMeta,
+  dijkstraSource,
+  dijkstraSteps,
+} from "@/lib/algorithms/graph/dijkstra";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -484,6 +489,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Topological Sort expects a graph input");
       }
       return topologicalSortSteps(input);
+    },
+  },
+  dijkstra: {
+    meta: dijkstraMeta,
+    source: dijkstraSource,
+    steps: (input) => {
+      if (input.kind !== "graph") {
+        throw new Error("Dijkstra expects a graph input");
+      }
+      return dijkstraSteps(input);
     },
   },
 };

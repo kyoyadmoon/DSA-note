@@ -11,7 +11,7 @@ export type WordListInput = {
 export type GraphInput = {
   kind: "graph";
   nodes: string[];
-  edges: [string, string][];
+  edges: Array<[string, string] | [string, string, number]>;
   start: string;
   directed?: boolean;
 };
@@ -177,6 +177,7 @@ export type GraphEdgeView = {
   from: string;
   to: string;
   directed: boolean;
+  weight?: number;
   state: GraphEdgeState;
 };
 
