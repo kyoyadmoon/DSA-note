@@ -9,6 +9,8 @@ import type {
   HashTableView,
   HeapNodeState,
   HeapView,
+  GraphNodeState,
+  GraphView,
   LinearCollectionItemState,
   LinearCollectionView,
   LinkedListNodeState,
@@ -59,7 +61,95 @@ export function DataStructureRenderer({ step }: Props) {
       return <BinaryHeapRenderer view={step.view} />;
     case "trie":
       return <TrieRenderer view={step.view} />;
+    case "graph":
+      return <GraphRenderer view={step.view} />;
   }
+}
+
+function graphNodeColor(state: GraphNodeState): string {
+  switch (state) {
+    case "active":
+      return "var(--color-bar-compare)";
+    case "discovered":
+      return "var(--color-bar-active)";
+    case "visited":
+      return "var(--color-bar-sorted)";
+    default:
+      return "var(--color-bar-idle)";
+  }
+}
+
+function GraphRenderer({ view }: { view: GraphView }) {
+  const byId = new Map(view.nodes.map((node) => [node.id, node]));
+  return (
+    <div className="flex h-full min-w-0 flex-col gap-2 overflow-hidden p-3">
+      <div className="min-h-0 flex-[3] overflow-hidden rounded-lg border border-border/60 bg-surface/50">
+        {view.nodes.length === 0 ? (
+          <div className="flex h-full items-center justify-center font-mono text-sm text-muted">
+            empty graph
+          </div>
+        ) : (
+          <svg viewBox="0 0 600 310" className="h-full w-full" role="img" aria-label={`${view.mode} graph`}>
+            <defs>
+              <marker id="graph-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-muted)" />
+              </marker>
+            </defs>
+            {view.edges.map((edge) => {
+              const from = byId.get(edge.from);
+              const to = byId.get(edge.to);
+              if (!from || !to) return null;
+              const active = edge.state !== "idle";
+              return (
+                <motion.line
+                  key={edge.id}
+                  x1={from.x}
+                  y1={from.y}
+                  x2={to.x}
+                  y2={to.y}
+                  animate={{
+                    stroke: active ? "var(--color-accent)" : "var(--color-border)",
+                    strokeWidth: active ? 4 : 2,
+                  }}
+                  markerEnd={edge.directed ? "url(#graph-arrow)" : undefined}
+                />
+              );
+            })}
+            {view.nodes.map((node) => (
+              <g key={node.id} transform={`translate(${node.x} ${node.y})`}>
+                <motion.circle
+                  r="24"
+                  animate={{
+                    fill: graphNodeColor(node.state),
+                    scale: node.state === "idle" ? 1 : 1.08,
+                  }}
+                />
+                <text textAnchor="middle" dominantBaseline="central" className="fill-background font-mono text-sm font-bold">
+                  {node.label}
+                </text>
+              </g>
+            ))}
+          </svg>
+        )}
+      </div>
+      <div className="grid min-h-24 flex-1 grid-cols-2 gap-3 overflow-auto rounded-lg border border-border/60 bg-surface-raised/35 px-3 py-2 font-mono text-[11px]">
+        <div>
+          <div className="mb-1 uppercase tracking-wider text-muted">adjacency list</div>
+          {view.adjacency.map((row) => (
+            <div key={row.node} className="text-foreground/80">
+              {row.node}: [{row.neighbors.join(", ")}]
+            </div>
+          ))}
+        </div>
+        <div>
+          <div className="uppercase tracking-wider text-muted">frontier</div>
+          <div className="mb-2 text-accent">[{view.frontier.join(", ")}]</div>
+          <div className="uppercase tracking-wider text-muted">visit order</div>
+          <div className="text-foreground/80">[{view.visitOrder.join(", ")}]</div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function trieNodeColor(state: TrieNodeState): string {
