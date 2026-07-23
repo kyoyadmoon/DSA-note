@@ -5,6 +5,8 @@ import { Legend } from "@/components/visualizer/Legend";
 import type {
   DataStructureStep,
   DynamicArrayView,
+  LinkedListNodeState,
+  LinkedListView,
   StructureSlotState,
 } from "@/lib/types/dataStructure";
 
@@ -38,7 +40,91 @@ export function DataStructureRenderer({ step }: Props) {
   switch (step.view.kind) {
     case "dynamic-array":
       return <DynamicArrayRenderer view={step.view} />;
+    case "linked-list":
+      return <LinkedListRenderer view={step.view} />;
   }
+}
+
+function linkedNodeColor(state: LinkedListNodeState): string {
+  switch (state) {
+    case "active":
+      return "var(--color-bar-compare)";
+    case "visited":
+      return "var(--color-bar-active)";
+    case "new":
+      return "var(--color-bar-sorted)";
+    case "removing":
+      return "var(--color-bar-swap)";
+    default:
+      return "var(--color-bar-idle)";
+  }
+}
+
+function LinkedListRenderer({ view }: { view: LinkedListView }) {
+  if (view.nodes.length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center font-mono text-sm text-muted">
+        head → null
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full items-center overflow-auto px-8 py-10">
+      <div className="mx-auto flex min-w-max items-center">
+        {view.nodes.map((node, index) => {
+          const next = view.nodes[index + 1];
+          const activeLink =
+            next &&
+            view.activeLink?.from === node.id &&
+            view.activeLink.to === next.id;
+          return (
+            <div key={node.id} className="flex items-center">
+              <div className="relative flex flex-col items-center">
+                <div className="mb-2 h-5 text-[10px] uppercase tracking-wider text-accent">
+                  {node.id === view.headId ? "head" : ""}
+                  {node.id === view.tailId
+                    ? node.id === view.headId
+                      ? " / tail"
+                      : "tail"
+                    : ""}
+                </div>
+                <motion.div
+                  layout
+                  animate={{
+                    backgroundColor: linkedNodeColor(node.state),
+                    scale: node.state === "idle" ? 1 : 1.08,
+                    opacity: node.state === "removing" ? 0.65 : 1,
+                  }}
+                  className="flex h-16 min-w-20 items-center justify-center rounded-xl border border-transparent px-4 font-mono text-lg font-semibold text-background shadow-lg"
+                >
+                  {node.value}
+                </motion.div>
+                <div className="mt-2 font-mono text-[10px] text-muted">
+                  {node.nextId ? `next: ${node.nextId}` : "next: null"}
+                </div>
+              </div>
+              {next && node.nextId === next.id && (
+                <motion.div
+                  animate={{
+                    color: activeLink
+                      ? "var(--color-accent)"
+                      : "var(--color-muted)",
+                    scale: activeLink ? 1.15 : 1,
+                  }}
+                  className="mx-3 mb-1 font-mono text-2xl"
+                  aria-label={`${node.value} points to ${next.value}`}
+                >
+                  →
+                </motion.div>
+              )}
+            </div>
+          );
+        })}
+        <div className="mx-3 mb-1 font-mono text-sm text-muted">null</div>
+      </div>
+    </div>
+  );
 }
 
 function DynamicArrayRenderer({ view }: { view: DynamicArrayView }) {

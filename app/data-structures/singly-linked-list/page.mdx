@@ -1,0 +1,82 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 02
+</div>
+
+# Singly Linked List
+
+## 一句話定位
+
+Singly Linked List 把元素拆成獨立節點，每個節點只記 `value` 與 `next`。它犧牲 random access，換取「已知節點位置時」不必搬動其他元素的插入與刪除。
+
+<DataStructureRunner
+  slug="singly-linked-list"
+  initial={{ kind: "numbers", values: [12, 7, 25, 4] }}
+/>
+
+## 必須守住的 invariant
+
+```text
+head === null  ⇔  tail === null
+tail !== null  ⇒  tail.next === null
+從 head 反覆走 next，恰好能到達 list 內每個節點一次
+```
+
+若某個節點無法從 head 到達，它就不再屬於這條 list；若 next 形成環，普通 traversal 就不會終止。
+
+## Array 與 Linked List 的真正差異
+
+Array 的元素連續，所以可以用 index 直接算位址；linked list 的節點可能散落在記憶體各處，只能從 head 沿指標走。
+
+| 操作 | Dynamic Array | Singly Linked List |
+|---|---:|---:|
+| `get(i)` | O(1) | O(n) |
+| 頭部插入 | O(n) | O(1) |
+| 尾端插入 | amortized O(1) | O(1)，前提是保存 tail |
+| 已知前驅時刪除 | O(n) 搬移 | O(1) 改指標 |
+| 依 value 搜尋 | O(n) | O(n) |
+| cache locality | 較好 | 較差 |
+
+重點是「已知前驅」。如果題目只給 index，仍要先花 O(n) 走到那裡；linked list 不會讓任意位置刪除自動變成 O(1)。
+
+## 為什麼保存 tail 很重要
+
+只有 head 時，append 必須從 head 走到最後，單次 O(n)。多保存一個 tail 指標，就能直接改 `tail.next` 並更新 tail，使 append 變成 O(1)。代價是每個會影響最後節點的操作都必須同步維護 tail。
+
+## 刪除的三個邊界
+
+1. 刪 head：沒有 previous，要直接更新 `head = head.next`。
+2. 刪中間：更新 `previous.next = current.next`。
+3. 刪 tail：除了改 previous.next，還要更新 `tail = previous`。
+
+最後一個節點被刪掉時，head 與 tail 必須一起回到 null。
+
+## 常見快慢指標技巧
+
+- 找中點：slow 每次一步、fast 每次兩步。
+- 判斷環：Floyd cycle detection，若有環兩者終會相遇。
+- 找倒數第 k 個：fast 先走 k 步，再與 slow 同速前進。
+- 回文 linked list：找中點、反轉後半段、逐一比較。
+
+## Retrieval check
+
+1. 只有 head、沒有 tail 時，append 的時間是多少？
+2. 「linked list 刪除是 O(1)」缺少了哪個前提？
+3. 刪除唯一節點後，head 與 tail 應該各是什麼？
+4. 為什麼 linked list 的 `get(i)` 無法做到 O(1)？
+
+答案應提到：必須持有 tail；必須已知節點與前驅；兩者都回到 null；節點不連續且沒有位址公式。
+
+## 代表題型
+
+- [LeetCode 21 · Merge Two Sorted Lists](https://leetcode.com/problems/merge-two-sorted-lists/)
+- [LeetCode 141 · Linked List Cycle](https://leetcode.com/problems/linked-list-cycle/)
+- [LeetCode 206 · Reverse Linked List](https://leetcode.com/problems/reverse-linked-list/)
+- [LeetCode 19 · Remove Nth Node From End of List](https://leetcode.com/problems/remove-nth-node-from-end-of-list/)
+- [LeetCode 234 · Palindrome Linked List](https://leetcode.com/problems/palindrome-linked-list/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 2: Data Structures](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Princeton Algorithms · Stacks and Queues](https://algs4.cs.princeton.edu/13stacks/)
