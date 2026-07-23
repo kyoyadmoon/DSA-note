@@ -155,6 +155,11 @@ import {
   binaryHeapSource,
   binaryHeapSteps,
 } from "@/lib/algorithms/data-structures/binaryHeap";
+import {
+  trieMeta,
+  trieSource,
+  trieSteps,
+} from "@/lib/algorithms/data-structures/trie";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -394,6 +399,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Binary Heap expects a numbers input");
       }
       return binaryHeapSteps(input.values);
+    },
+  },
+  trie: {
+    meta: trieMeta,
+    source: trieSource,
+    steps: (input) => {
+      if (input.kind !== "words") {
+        throw new Error("Trie expects a words input");
+      }
+      return trieSteps(input.values);
     },
   },
 };

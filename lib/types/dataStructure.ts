@@ -141,12 +141,32 @@ export type HeapView = {
   output: number[];
 };
 
+export type TrieNodeState = "idle" | "active" | "visited" | "new" | "found";
+
+export type TrieNodeView = {
+  id: string;
+  character: string;
+  path: string;
+  parentId: string | null;
+  childIds: string[];
+  terminal: boolean;
+  state: TrieNodeState;
+};
+
+export type TrieView = {
+  kind: "trie";
+  nodes: TrieNodeView[];
+  wordCount: number;
+  query?: string;
+};
+
 export type DataStructureView =
   | DynamicArrayView
   | LinkedListView
   | LinearCollectionView
   | HashTableView
-  | HeapView;
+  | HeapView
+  | TrieView;
 
 export type DataStructureStep = {
   view: DataStructureView;
