@@ -22,6 +22,12 @@ export default function Home() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <TopicCard
+            href="/data-structures/dynamic-array"
+            eyebrow="Data Structures · Interview core"
+            title="核心資料結構"
+            description="從 Dynamic Array 開始，掌握每個結構的不變量、操作成本與面試取捨。"
+          />
+          <TopicCard
             href="/sorting"
             eyebrow="Sorting · 6 algorithms"
             title="排序演算法"

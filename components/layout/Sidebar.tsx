@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+const DATA_STRUCTURE_LINKS = [
+  { href: "/data-structures/dynamic-array", label: "Dynamic Array" },
+] as const;
+
 const TREE_LINKS = [
   { href: "/tree/bst-insert", label: "BST Insertion" },
   { href: "/tree/tree-lca", label: "最近公共祖先" },
@@ -35,6 +39,7 @@ const GRAPH_LINKS = [
 ] as const;
 
 const NAV_SECTIONS = [
+  { title: "Data Structures", links: DATA_STRUCTURE_LINKS },
   { title: "Sorting", links: SORTING_LINKS },
   { title: "Trees", links: TREE_LINKS },
   { title: "Graph", links: GRAPH_LINKS },

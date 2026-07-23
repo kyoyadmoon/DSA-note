@@ -1,4 +1,9 @@
 import type { AlgorithmMeta, ArrayStep } from "@/lib/types/step";
+import type {
+  DataStructureInput,
+  DataStructureMeta,
+  DataStructureStep,
+} from "@/lib/types/dataStructure";
 import type { TreeAlgorithmMeta, TreeStep } from "@/lib/types/tree";
 import type {
   UnionFindAlgorithmMeta,
@@ -110,6 +115,11 @@ import {
   pathSumSource,
   pathSumSteps,
 } from "@/lib/algorithms/tree/pathSum";
+import {
+  dynamicArrayMeta,
+  dynamicArraySource,
+  dynamicArraySteps,
+} from "@/lib/algorithms/data-structures/dynamicArray";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -258,5 +268,35 @@ export const unionFindRegistry: Record<string, UnionFindAlgorithmEntry> = {
 export function getUnionFindAlgorithm(slug: string): UnionFindAlgorithmEntry {
   const entry = unionFindRegistry[slug];
   if (!entry) throw new Error(`Unknown union-find algorithm slug: ${slug}`);
+  return entry;
+}
+
+export type DataStructureAlgorithmEntry = {
+  meta: DataStructureMeta;
+  source: string;
+  steps: (input: DataStructureInput) => DataStructureStep[];
+};
+
+export const dataStructureRegistry: Record<
+  string,
+  DataStructureAlgorithmEntry
+> = {
+  "dynamic-array": {
+    meta: dynamicArrayMeta,
+    source: dynamicArraySource,
+    steps: (input) => {
+      if (input.kind !== "numbers") {
+        throw new Error("Dynamic Array expects a numbers input");
+      }
+      return dynamicArraySteps(input.values);
+    },
+  },
+};
+
+export function getDataStructureAlgorithm(
+  slug: string,
+): DataStructureAlgorithmEntry {
+  const entry = dataStructureRegistry[slug];
+  if (!entry) throw new Error(`Unknown data-structure slug: ${slug}`);
   return entry;
 }
