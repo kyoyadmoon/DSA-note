@@ -1,0 +1,89 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Graph · Breadth-First Search
+</div>
+
+# Breadth-First Search
+
+## 一句話定位
+
+BFS 使用 Queue 依「從起點經過的 edge 數」分層展開 graph。在 unweighted graph 中，第一次發現 vertex 時就得到最少 edge 數距離。
+
+<DataStructureRunner
+  slug="bfs"
+  initial={{
+    kind: "graph",
+    nodes: ["A", "B", "C", "D", "E"],
+    edges: [["A", "B"], ["A", "C"], ["B", "D"], ["C", "D"], ["D", "E"]],
+    start: "A",
+  }}
+/>
+
+## 必須守住的 invariant
+
+```text
+Queue 中的 vertices 依 nondecreasing distance 排列
+discovered vertex 不會再次 enqueue
+處理 distance d 的 vertex 時，尚未處理者距離不小於 d
+```
+
+關鍵是「enqueue 時」立刻標記 discovered，而不是 dequeue 時才標記。若 B 與 C 都連到 D，延後標記會讓 D 被重複加入 Queue。
+
+## 最短路徑資訊
+
+發現 neighbor 時同時保存：
+
+```text
+distance[neighbor] = distance[current] + 1
+parent[neighbor] = current
+```
+
+從 target 沿 parent 走回 start，再反轉即可重建一條最短路徑。BFS 保證的是最少 edge 數；若 edge weights 不同，必須考慮 Dijkstra 等演算法。
+
+## 複雜度
+
+使用 adjacency list：
+
+- 每個 reachable vertex 最多 enqueue / dequeue 一次：O(V)。
+- 每條 edge 只被 adjacency traversal 檢查常數次：O(E)。
+- 總時間 O(V + E)，Queue、discovered、parent 最多 O(V) 空間。
+
+若 graph 不連通且題目要求走完全部 components，要在外層遍歷所有 vertices，對尚未 discovered 的 vertex 再啟動一次 BFS。
+
+## 常見變形
+
+- Multi-source BFS：把所有起點以 distance 0 一起入列，例如 Rotting Oranges。
+- Grid BFS：cell 是 vertex，方向陣列產生 neighbors。
+- Bidirectional BFS：從 start 與 target 同時搜尋，適合分支多、已知單一終點的情況。
+- Topological Sort（Kahn）：Queue 保存目前 in-degree 0 的 vertices。
+- State-space BFS：vertex 可以是 lock combination、board state 或 `(position, keys)`。
+
+## 常見錯誤
+
+1. 用 `shift()` 實作大量 dequeue，讓 JavaScript Queue 退化；應用 head index。
+2. 忘記 visited/discovered，遇到 cycle 無限迴圈。
+3. 只把 node 當 visited key，但狀態其實還包含 mask、剩餘資源或方向。
+4. Weighted graph 仍用普通 BFS 宣稱得到最短成本。
+
+## Retrieval check
+
+1. 為什麼要在 enqueue 時標記 discovered？
+2. BFS 的 shortest path 保證需要什麼 edge 條件？
+3. 如何用 parent map 還原路徑？
+4. Multi-source BFS 的起始 Queue 如何設定？
+
+答案應提到：避免重複入列；unweighted／等權；從 target 回溯再反轉；所有 sources 距離 0 同時入列。
+
+## 代表題型
+
+- [LeetCode 102 · Binary Tree Level Order Traversal](https://leetcode.com/problems/binary-tree-level-order-traversal/)
+- [LeetCode 127 · Word Ladder](https://leetcode.com/problems/word-ladder/)
+- [LeetCode 200 · Number of Islands](https://leetcode.com/problems/number-of-islands/)
+- [LeetCode 994 · Rotting Oranges](https://leetcode.com/problems/rotting-oranges/)
+- [LeetCode 1091 · Shortest Path in Binary Matrix](https://leetcode.com/problems/shortest-path-in-binary-matrix/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 9: Breadth-First Search](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Princeton Algorithms · Undirected Graphs](https://algs4.cs.princeton.edu/41graph/)

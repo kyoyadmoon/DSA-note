@@ -165,6 +165,11 @@ import {
   graphRepresentationSource,
   graphRepresentationSteps,
 } from "@/lib/algorithms/data-structures/graphRepresentation";
+import {
+  bfsMeta,
+  bfsSource,
+  bfsSteps,
+} from "@/lib/algorithms/graph/bfs";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -424,6 +429,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Graph Representation expects a graph input");
       }
       return graphRepresentationSteps(input);
+    },
+  },
+  bfs: {
+    meta: bfsMeta,
+    source: bfsSource,
+    steps: (input) => {
+      if (input.kind !== "graph") {
+        throw new Error("BFS expects a graph input");
+      }
+      return bfsSteps(input);
     },
   },
 };

@@ -41,6 +41,7 @@ const SORTING_LINKS = [
 ] as const;
 
 const GRAPH_LINKS = [
+  { href: "/graph/bfs", label: "Breadth-First Search" },
   { href: "/graph/uf-quick-find", label: "Quick Find" },
   { href: "/graph/uf-quick-union", label: "Quick Union" },
   { href: "/graph/uf-weighted-quick-union", label: "Weighted Quick Union" },
