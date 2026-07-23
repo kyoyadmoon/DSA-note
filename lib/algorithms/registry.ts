@@ -170,6 +170,11 @@ import {
   bfsSource,
   bfsSteps,
 } from "@/lib/algorithms/graph/bfs";
+import {
+  dfsMeta,
+  dfsSource,
+  dfsSteps,
+} from "@/lib/algorithms/graph/dfs";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -439,6 +444,16 @@ export const dataStructureRegistry: Record<
         throw new Error("BFS expects a graph input");
       }
       return bfsSteps(input);
+    },
+  },
+  dfs: {
+    meta: dfsMeta,
+    source: dfsSource,
+    steps: (input) => {
+      if (input.kind !== "graph") {
+        throw new Error("DFS expects a graph input");
+      }
+      return dfsSteps(input);
     },
   },
 };

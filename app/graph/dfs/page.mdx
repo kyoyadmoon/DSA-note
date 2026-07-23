@@ -1,0 +1,101 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Graph · Depth-First Search
+</div>
+
+# Depth-First Search
+
+## 一句話定位
+
+DFS 使用 call stack 或顯式 Stack，沿一條路徑盡量深入後再回頭。它適合探索 connectivity、cycle、component、拓撲關係，以及需要「選擇—深入—復原」的 backtracking。
+
+<DataStructureRunner
+  slug="dfs"
+  initial={{
+    kind: "graph",
+    nodes: ["A", "B", "C", "D", "E"],
+    edges: [["A", "B"], ["A", "C"], ["B", "D"], ["C", "D"], ["D", "E"]],
+    start: "A",
+  }}
+/>
+
+## 必須守住的 invariant
+
+```text
+discovered vertex 不會再次 push／遞迴進入
+Stack top 是下一個要深入的候選
+一個 vertex 的所有 outgoing choices 完成後才離開其 recursive frame
+```
+
+互動示範使用 iterative DFS。為了讓 visit order 符合 adjacency list 由左到右的順序，push 時必須反向加入 neighbors；Stack 才會先 pop 原本的第一個 neighbor。
+
+## Iterative 與 Recursive DFS
+
+| 面向 | Recursive | Iterative |
+|---|---|---|
+| Stack | 語言 call stack | 自己管理資料結構 |
+| 寫法 | 通常較接近遞迴定義 | 可控制 push 順序與 frame 內容 |
+| 深度過大 | 可能 stack overflow | Heap memory 通常容許更深 |
+| exit-time 邏輯 | 函式 return 前自然處理 | 需保存 enter/exit frame 或 iterator 狀態 |
+
+兩者都可能使用 O(V) auxiliary space；不要因 recursive code 短就忽略 call stack。
+
+## Cycle Detection 不只一個 visited Set
+
+Undirected graph：看到已 visited neighbor 時，要排除「回到 parent」的那條邊。
+
+Directed graph：常用三色狀態：
+
+```text
+white = 未進入
+gray  = 已進入但尚未離開（目前 recursion path）
+black = 已完整處理
+```
+
+遇到指向 gray vertex 的 edge 才是 directed cycle。只用 visited boolean 不能區分「已完成的另一分支」與「目前 path 的 ancestor」。
+
+## Entry／Exit Time 的用途
+
+Recursive DFS 進入 node 時記 entry，處理完所有 children 後記 exit：
+
+- Topological sort：依 exit time 反序排列，前提是 DAG。
+- Strongly connected components：Kosaraju 等演算法會利用完成順序。
+- Tree Euler tour：subtree 可對應到連續時間區間。
+- Edge classification：tree、back、forward、cross edges。
+
+## DFS 與 Backtracking 的差異
+
+DFS 是走訪順序；backtracking 在 DFS 搜尋樹上還會：
+
+1. 做選擇並更新 mutable state。
+2. 遞迴探索。
+3. 撤銷選擇，讓 sibling branch 看見正確狀態。
+
+Graph traversal 的 visited 通常不撤銷；排列組合的 `used`、路徑內容則常需要撤銷。要依 state 是否屬於「全域已處理」或「目前路徑」判斷。
+
+## 複雜度
+
+Adjacency list DFS 時間 O(V + E)，visited 與 Stack 最多 O(V)。若 graph 不連通且要求全部 components，外層要對所有 vertices 啟動尚未走訪者，總複雜度仍是 O(V + E)。
+
+## Retrieval check
+
+1. Iterative DFS 為什麼常反向 push neighbors？
+2. Directed cycle detection 為什麼需要 gray 狀態？
+3. Recursive DFS 的額外空間如何計算？
+4. Backtracking 與一般 graph visited 的撤銷策略為何不同？
+
+答案應提到：Stack LIFO；分辨目前 recursion path；最深遞迴可到 O(V)；path-local state 要撤銷、全域完成狀態通常不撤銷。
+
+## 代表題型
+
+- [LeetCode 200 · Number of Islands](https://leetcode.com/problems/number-of-islands/)
+- [LeetCode 207 · Course Schedule](https://leetcode.com/problems/course-schedule/)
+- [LeetCode 417 · Pacific Atlantic Water Flow](https://leetcode.com/problems/pacific-atlantic-water-flow/)
+- [LeetCode 695 · Max Area of Island](https://leetcode.com/problems/max-area-of-island/)
+- [LeetCode 797 · All Paths From Source to Target](https://leetcode.com/problems/all-paths-from-source-to-target/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 10: Depth-First Search](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Princeton Algorithms · Directed Graphs](https://algs4.cs.princeton.edu/42digraph/)
