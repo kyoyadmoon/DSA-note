@@ -57,17 +57,15 @@ function linearItemColor(state: LinearCollectionItemState): string {
       return "var(--color-bar-sorted)";
     case "removing":
       return "var(--color-bar-swap)";
+    case "consumed":
+      return "var(--color-surface-raised)";
     default:
       return "var(--color-bar-idle)";
   }
 }
 
 function LinearCollectionRenderer({ view }: { view: LinearCollectionView }) {
-  if (view.mode !== "stack") {
-    return null;
-  }
-
-  return (
+  if (view.mode === "stack") return (
     <div className="relative flex h-full items-center justify-center overflow-auto px-8 py-8">
       <div className="flex min-h-72 min-w-44 flex-col justify-end rounded-b-2xl border-x-2 border-b-2 border-border bg-surface-raised/35 px-4 pb-4 pt-12">
         {view.items.length === 0 ? (
@@ -96,6 +94,52 @@ function LinearCollectionRenderer({ view }: { view: LinearCollectionView }) {
           ))
         )}
       </div>
+      <div className="absolute bottom-4 right-5 font-mono text-xs text-muted">
+        output [{view.output.join(", ")}]
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="relative flex h-full items-center overflow-auto px-8 py-10">
+      <div className="mx-auto flex min-w-max items-center gap-2">
+        {view.items.length === 0 ? (
+          <div className="font-mono text-sm text-muted">empty {view.mode}</div>
+        ) : (
+          view.items.map((item, index) => (
+            <div key={item.id} className="flex items-center">
+              <div className="flex flex-col items-center">
+                <div className="mb-2 flex h-5 gap-2 text-[10px] uppercase tracking-wider text-accent">
+                  {item.id === view.frontId && <span>front</span>}
+                  {item.id === view.backId && <span>back</span>}
+                </div>
+                <motion.div
+                  layout
+                  animate={{
+                    backgroundColor: linearItemColor(item.state),
+                    scale: item.state === "idle" || item.state === "consumed" ? 1 : 1.06,
+                    opacity: item.state === "consumed" ? 0.38 : item.state === "removing" ? 0.65 : 1,
+                  }}
+                  className="flex h-16 min-w-20 items-center justify-center rounded-xl border border-border px-4 font-mono text-lg font-semibold text-background shadow-sm"
+                >
+                  {item.value}
+                </motion.div>
+                <div className="mt-2 font-mono text-[10px] text-muted">
+                  {index}
+                </div>
+              </div>
+              {index < view.items.length - 1 && (
+                <span className="mx-1 mt-3 font-mono text-muted">→</span>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+      {view.headIndex !== undefined && (
+        <div className="absolute left-5 top-4 font-mono text-xs text-muted">
+          head index {view.headIndex}
+        </div>
+      )}
       <div className="absolute bottom-4 right-5 font-mono text-xs text-muted">
         output [{view.output.join(", ")}]
       </div>

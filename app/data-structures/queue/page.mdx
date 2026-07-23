@@ -1,0 +1,79 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Data Structure · 05
+</div>
+
+# Queue
+
+## 一句話定位
+
+Queue 從 back 加入、從 front 移除，遵守 FIFO（First In, First Out）。它適合處理「較早到達的工作應較早完成」的順序。
+
+<DataStructureRunner
+  slug="queue"
+  initial={{ kind: "numbers", values: [5, 8, 13, 21] }}
+/>
+
+## 必須守住的 invariant
+
+```text
+front 是最早 enqueue、但尚未 dequeue 的元素
+back 是最近 enqueue、但尚未 dequeue 的元素
+dequeue 不改變其餘元素的 FIFO 相對順序
+```
+
+和 Stack 一樣，Queue 是抽象介面。底層可用 circular array 或 linked list；選擇實作時要確認兩端操作不會意外退化。
+
+## JavaScript 的 `shift()` 陷阱
+
+直接用 Array 的 `push` 與 `shift` 看似符合 FIFO，但 `shift` 通常需要重新編排後續 index，因此單次可能是 O(n)。較合適的做法包括：
+
+- 保存 head index，dequeue 時只讓 head 加一。
+- 偶爾在已消耗區域夠大時批次 compact，取得 amortized O(1)。
+- 使用 linked list 並同時保存 head / tail。
+- 以固定長度 array 實作 circular buffer。
+
+互動示範保留 consumed slot，刻意呈現「移動 head，而不是搬動全部元素」。
+
+## 操作與複雜度
+
+| 操作 | 合適實作 | `push` + `shift` |
+|---|---:|---:|
+| `enqueue` | amortized O(1) | amortized O(1) |
+| `dequeue` | O(1) / amortized O(1) | O(n) |
+| `peek front` | O(1) | O(1) |
+| 搜尋 | O(n) | O(n) |
+
+## 如何辨認 Queue 題型
+
+- BFS：先發現的節點先展開，無權圖中可得到最少邊數路徑。
+- Level-order traversal：按層處理 Tree。
+- 工作排程、request buffering、producer-consumer。
+- Sliding window 中保存仍可能影響答案的候選者；若還要移除 back，會進一步形成 deque。
+
+## BFS 為何不能任意換成 Stack
+
+Queue 讓距離 d 的節點在距離 d + 1 的節點前被處理，因此無權圖第一次到達節點時就是最短邊數。換成 Stack 會變成 DFS，仍能走訪，但不再保證同樣的最短路徑性質。
+
+## Retrieval check
+
+1. Queue 的兩端分別負責什麼操作？
+2. 為什麼 `shift()` 可能使 dequeue 成為 O(n)？
+3. head index 一直增加時，何時需要 compact？
+4. 為什麼 BFS 使用 Queue 能按距離分層？
+
+答案應提到：back enqueue、front dequeue；index 重排；在浪費空間達門檻時批次整理；先發現者先展開。
+
+## 代表題型
+
+- [LeetCode 102 · Binary Tree Level Order Traversal](https://leetcode.com/problems/binary-tree-level-order-traversal/)
+- [LeetCode 200 · Number of Islands](https://leetcode.com/problems/number-of-islands/)
+- [LeetCode 994 · Rotting Oranges](https://leetcode.com/problems/rotting-oranges/)
+- [LeetCode 207 · Course Schedule](https://leetcode.com/problems/course-schedule/)
+- [LeetCode 933 · Number of Recent Calls](https://leetcode.com/problems/number-of-recent-calls/)
+
+## 可信來源
+
+- [Princeton Algorithms · Stacks and Queues](https://algs4.cs.princeton.edu/13stacks/)
+- [MIT 6.006 · Lecture 2: Data Structures](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)

@@ -135,6 +135,11 @@ import {
   stackSource,
   stackSteps,
 } from "@/lib/algorithms/data-structures/stack";
+import {
+  queueMeta,
+  queueSource,
+  queueSteps,
+} from "@/lib/algorithms/data-structures/queue";
 
 export type AlgorithmEntry = {
   meta: AlgorithmMeta;
@@ -334,6 +339,16 @@ export const dataStructureRegistry: Record<
         throw new Error("Stack expects a numbers input");
       }
       return stackSteps(input.values);
+    },
+  },
+  queue: {
+    meta: queueMeta,
+    source: queueSource,
+    steps: (input) => {
+      if (input.kind !== "numbers") {
+        throw new Error("Queue expects a numbers input");
+      }
+      return queueSteps(input.values);
     },
   },
 };
