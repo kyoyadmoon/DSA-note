@@ -5,6 +5,8 @@ import { Legend } from "@/components/visualizer/Legend";
 import type {
   DataStructureStep,
   DynamicArrayView,
+  HashEntryState,
+  HashTableView,
   LinearCollectionItemState,
   LinearCollectionView,
   LinkedListNodeState,
@@ -46,7 +48,81 @@ export function DataStructureRenderer({ step }: Props) {
       return <LinkedListRenderer view={step.view} />;
     case "linear-collection":
       return <LinearCollectionRenderer view={step.view} />;
+    case "hash-table":
+      return <HashTableRenderer view={step.view} />;
   }
+}
+
+function hashEntryColor(state: HashEntryState): string {
+  switch (state) {
+    case "active":
+      return "var(--color-bar-compare)";
+    case "new":
+    case "found":
+      return "var(--color-bar-sorted)";
+    case "removing":
+      return "var(--color-bar-swap)";
+    default:
+      return "var(--color-bar-idle)";
+  }
+}
+
+function HashTableRenderer({ view }: { view: HashTableView }) {
+  return (
+    <div className="relative flex h-full items-center overflow-auto px-6 py-12">
+      <div className="mx-auto grid min-w-[34rem] grid-cols-[3rem_1fr] items-stretch gap-x-3 gap-y-2">
+        {view.buckets.map((bucket) => (
+          <div key={bucket.index} className="contents">
+            <div
+              className={
+                "flex items-center justify-center rounded-lg border font-mono text-sm " +
+                (bucket.active
+                  ? "border-accent bg-accent/15 text-accent"
+                  : "border-border bg-surface-raised text-muted")
+              }
+            >
+              {bucket.index}
+            </div>
+            <div
+              className={
+                "flex min-h-14 items-center gap-2 rounded-lg border px-2 py-1.5 " +
+                (bucket.active ? "border-accent/60" : "border-border")
+              }
+            >
+              {bucket.entries.length === 0 ? (
+                <span className="px-2 font-mono text-xs text-muted">empty</span>
+              ) : (
+                bucket.entries.map((entry, index) => (
+                  <div key={entry.id} className="flex items-center gap-2">
+                    {index > 0 && <span className="font-mono text-muted">→</span>}
+                    <motion.div
+                      layout
+                      animate={{
+                        backgroundColor: hashEntryColor(entry.state),
+                        scale: entry.state === "idle" ? 1 : 1.04,
+                        opacity: entry.state === "removing" ? 0.65 : 1,
+                      }}
+                      className="rounded-md px-3 py-2 font-mono text-xs font-semibold text-background shadow-sm"
+                    >
+                      {entry.key}: {entry.value}
+                    </motion.div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="absolute left-5 top-4 font-mono text-xs text-muted">
+        size {view.size} / capacity {view.capacity} · α {view.loadFactor.toFixed(2)}
+      </div>
+      {view.hashLabel && (
+        <div className="absolute bottom-4 right-5 font-mono text-xs text-accent">
+          {view.hashLabel}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function linearItemColor(state: LinearCollectionItemState): string {

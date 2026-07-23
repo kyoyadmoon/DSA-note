@@ -10,6 +10,7 @@ const DATA_STRUCTURE_LINKS = [
   { href: "/data-structures/stack", label: "Stack" },
   { href: "/data-structures/queue", label: "Queue" },
   { href: "/data-structures/deque", label: "Deque" },
+  { href: "/data-structures/hash-table", label: "Hash Table" },
 ] as const;
 
 const TREE_LINKS = [
