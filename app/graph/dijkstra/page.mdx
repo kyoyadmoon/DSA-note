@@ -1,0 +1,101 @@
+import { DataStructureRunner } from "@/components/visualizer/DataStructureRunner";
+
+<div className="text-xs uppercase tracking-[0.2em] text-muted mb-3">
+  Graph · Shortest Path
+</div>
+
+# Dijkstra’s Shortest Path
+
+## 一句話定位
+
+Dijkstra 在所有 edge weights 非負時，反覆從 Min Priority Queue 取出 tentative distance 最小的 vertex，並 relax 它的 outgoing edges，求單一起點到各 vertex 的最短距離。
+
+<DataStructureRunner
+  slug="dijkstra"
+  initial={{
+    kind: "graph",
+    nodes: ["A", "B", "C", "D"],
+    edges: [["A", "B", 4], ["A", "C", 1], ["C", "B", 2], ["B", "D", 1], ["C", "D", 5]],
+    start: "A",
+    directed: true,
+  }}
+/>
+
+## 必須守住的 invariant
+
+```text
+distance[v] 是目前已知從 start 到 v 的最佳路徑成本上界
+Priority Queue 保存尚待處理的 tentative candidates
+被 settle 的 vertex 已取得最終最短距離（前提：所有 weights >= 0）
+```
+
+非負權重是第三條成立的原因。若允許負權 edge，之後可能繞到一條更便宜路徑，推翻已 settle 的距離。
+
+## Relaxation
+
+對 edge `u → v`、weight w：
+
+```text
+candidate = distance[u] + w
+if candidate < distance[v]:
+  distance[v] = candidate
+  parent[v] = u
+  push (v, candidate) into priority queue
+```
+
+Relax 不是宣告 candidate 一定是最短路徑；只是用新路徑改善目前上界。Parent map 可在結束後重建實際 shortest path。
+
+## Stale Entry 策略
+
+許多標準 library Priority Queue 不支援 decrease-key。常見替代做法是：
+
+1. 發現更短距離時，直接 push 新 `(vertex, distance)`。
+2. 舊 entry 留在 Queue。
+3. Pop 時若 entry.distance 不等於目前 `distance[vertex]`，就是 stale，直接略過。
+
+這能簡化實作並保持正確；代價是 Queue 可能包含 O(E) 個 entries，複雜度常寫成 O((V + E) log V) 或 O(E log V)，視 heap size 分析方式而定。
+
+## 為什麼不能有負權 edge
+
+假設已以成本 2 settle A，但之後存在尚未展開的路徑經負權 edge 把 A 改成成本 -3，Dijkstra 的 greedy 決定就被推翻。負權 graph 可考慮 Bellman–Ford；若還要偵測 negative cycle，也必須使用支援該性質的演算法。
+
+## 與 BFS、0-1 BFS 的選擇
+
+| Edge weights | 演算法 | 典型時間 |
+|---|---|---:|
+| 全部相等／unweighted | BFS | O(V + E) |
+| 只有 0 或 1 | 0-1 BFS + Deque | O(V + E) |
+| 任意非負 | Dijkstra + Min Heap | O((V + E) log V) |
+| 可能為負 | Bellman–Ford 等 | O(VE) |
+
+不要看到 shortest path 就直接套 Dijkstra；先讀 weight 約束。
+
+## 常見錯誤
+
+- 使用 Max Heap 或比較器方向寫反。
+- Pop 後不檢查 stale entry，造成大量重複展開。
+- 把 vertex 在「第一次看到」時就當作最終距離；那是 BFS 的等權性質。
+- 加總可能超過 number 安全範圍，卻忽略資料約束。
+- Graph 是 undirected，卻只加入單向 weighted edge。
+
+## Retrieval check
+
+1. Relaxation 更新哪三個狀態？
+2. 為什麼 pop 出來的 entry 可能 stale？
+3. Dijkstra 的非負權前提用在哪裡？
+4. Weight 只有 0／1 時可用什麼更線性的解法？
+
+答案應提到：distance、parent、Priority Queue；沒有 decrease-key 而保留舊候選；保證 settle 後不會被更便宜路徑推翻；0-1 BFS。
+
+## 代表題型
+
+- [LeetCode 743 · Network Delay Time](https://leetcode.com/problems/network-delay-time/)
+- [LeetCode 787 · Cheapest Flights Within K Stops](https://leetcode.com/problems/cheapest-flights-within-k-stops/)
+- [LeetCode 1514 · Path with Maximum Probability](https://leetcode.com/problems/path-with-maximum-probability/)
+- [LeetCode 1631 · Path With Minimum Effort](https://leetcode.com/problems/path-with-minimum-effort/)
+- [LeetCode 1976 · Number of Ways to Arrive at Destination](https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/)
+
+## 可信來源
+
+- [MIT 6.006 · Lecture 13: Dijkstra](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/lecture-notes/)
+- [Princeton Algorithms · Shortest Paths](https://algs4.cs.princeton.edu/44sp/)

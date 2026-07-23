@@ -9,6 +9,7 @@ export type TraversalEdge = {
   id: string;
   from: string;
   to: string;
+  weight: number;
 };
 
 export type PreparedGraph = {
@@ -27,12 +28,17 @@ export function prepareGraph(input: GraphInput): PreparedGraph {
   const seen = new Set<string>();
   const adjacency = new Map(nodes.map((node) => [node, [] as string[]]));
 
-  for (const [from, to] of input.edges) {
+  for (const [from, to, inputWeight] of input.edges) {
     if (!validNodes.has(from) || !validNodes.has(to)) continue;
     const key = directed ? `${from}->${to}` : [from, to].sort().join("--");
     if (seen.has(key)) continue;
     seen.add(key);
-    const edge = { id: `edge-${edges.length}-${from}-${to}`, from, to };
+    const edge = {
+      id: `edge-${edges.length}-${from}-${to}`,
+      from,
+      to,
+      weight: inputWeight ?? 1,
+    };
     edges.push(edge);
     adjacency.get(from)!.push(to);
     if (!directed && from !== to) adjacency.get(to)!.push(from);
@@ -69,6 +75,18 @@ export function edgeIdBetween(
       (edge.from === from && edge.to === to) ||
       (!graph.directed && edge.from === to && edge.to === from),
   )?.id;
+}
+
+export function edgeWeightBetween(
+  graph: PreparedGraph,
+  from: string,
+  to: string,
+): number | undefined {
+  return graph.edges.find(
+    (edge) =>
+      (edge.from === from && edge.to === to) ||
+      (!graph.directed && edge.from === to && edge.to === from),
+  )?.weight;
 }
 
 export function makeTraversalStep(

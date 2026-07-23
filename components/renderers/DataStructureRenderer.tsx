@@ -175,18 +175,29 @@ function GraphRenderer({ view }: { view: GraphView }) {
               if (!from || !to) return null;
               const active = edge.state !== "idle";
               return (
-                <motion.line
-                  key={edge.id}
-                  x1={from.x}
-                  y1={from.y}
-                  x2={to.x}
-                  y2={to.y}
-                  animate={{
-                    stroke: active ? "var(--color-accent)" : "var(--color-border)",
-                    strokeWidth: active ? 4 : 2,
-                  }}
-                  markerEnd={edge.directed ? "url(#graph-arrow)" : undefined}
-                />
+                <g key={edge.id}>
+                  <motion.line
+                    x1={from.x}
+                    y1={from.y}
+                    x2={to.x}
+                    y2={to.y}
+                    animate={{
+                      stroke: active ? "var(--color-accent)" : "var(--color-border)",
+                      strokeWidth: active ? 4 : 2,
+                    }}
+                    markerEnd={edge.directed ? "url(#graph-arrow)" : undefined}
+                  />
+                  {edge.weight !== undefined && view.mode === "dijkstra" && (
+                    <text
+                      x={(from.x + to.x) / 2}
+                      y={(from.y + to.y) / 2 - 6}
+                      textAnchor="middle"
+                      className="fill-foreground font-mono text-[11px] font-bold"
+                    >
+                      {edge.weight}
+                    </text>
+                  )}
+                </g>
               );
             })}
             {view.nodes.map((node) => (
